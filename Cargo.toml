@@ -10,7 +10,7 @@ v8 = ["dep:openworkers-runtime-v8"]
 
 [dependencies]
 openworkers-core = { git = "https://github.com/openworkers/openworkers-core", tag = "v0.13.1" }
-openworkers-runtime-v8 = { path = "../openworkers-runtime-v8", optional = true, features = ["ptrcomp"] }
+openworkers-runtime-v8 = { git = "https://github.com/openworkers/openworkers-runtime-v8", tag = "v0.13.3", optional = true, features = ["ptrcomp"] }
 
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
