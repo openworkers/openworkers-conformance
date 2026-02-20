@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use openworkers_core::{Event, HttpMethod, HttpRequest, RequestBody, Script};
 use serde::Deserialize;
 
-use crate::runtime::{run_in_local, Event, HttpMethod, HttpRequest, RequestBody, Script, Worker};
+use crate::runtime::{run_in_local, Worker};
 
 // ---------------------------------------------------------------------------
 // Custom (simple) harness – kept for quick one-off tests

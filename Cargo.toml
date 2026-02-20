@@ -9,6 +9,7 @@ default = []
 v8 = ["dep:openworkers-runtime-v8"]
 
 [dependencies]
+openworkers-core = { git = "https://github.com/openworkers/openworkers-core", tag = "v0.13.0" }
 openworkers-runtime-v8 = { git = "https://github.com/openworkers/openworkers-runtime-v8", tag = "v0.13.3", optional = true, features = ["ptrcomp"] }
 
 tokio = { version = "1", features = ["full"] }
