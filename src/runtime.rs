@@ -1,7 +1,9 @@
 use tokio::task::LocalSet;
 
 #[cfg(feature = "v8")]
-pub use openworkers_runtime_v8::Worker;
+pub use openworkers_runtime_v8::{
+    Event, HttpMethod, HttpRequest, RequestBody, Script, Worker,
+};
 
 /// Runs an async function inside a LocalSet.
 /// Required for tests that use spawn_local (tokio 1.48+).
