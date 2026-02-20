@@ -4,6 +4,7 @@ use std::path::Path;
 use openworkers_core::{Event, HttpMethod, HttpRequest, RequestBody, Script};
 use serde::Deserialize;
 
+use crate::ops::MinimalOps;
 use crate::runtime::{run_in_local, Worker};
 
 // ---------------------------------------------------------------------------
@@ -206,7 +207,9 @@ fn resolve_meta_scripts(test_code: &str, test_file_dir: &Path) -> String {
 async fn execute_worker(full_code: &str) -> TestResult {
     run_in_local(|| async {
         let script = Script::new(full_code);
-        let mut worker = Worker::new(script, None).await.unwrap();
+        let ops: std::sync::Arc<dyn openworkers_core::OperationsHandler> =
+            std::sync::Arc::new(MinimalOps);
+        let mut worker = Worker::new_with_ops(script, None, ops).await.unwrap();
 
         let req = HttpRequest {
             method: HttpMethod::Get,
