@@ -1,0 +1,485 @@
+{
+  "runtime": "openworkers-runtime-v8",
+  "runtime_rev": "b5c9350",
+  "transform": "openworkers-transform v0.1.0",
+  "base_url": "http://localhost",
+  "bindings": [
+    "ASSETS"
+  ],
+  "bundle": {
+    "path": "build/_worker.js",
+    "bytes": 146311,
+    "sha256": "50f8802547ea99100bac40389c5d8221c182f36b6d8f3cbfdb1c9730107e0f12"
+  },
+  "lowered": {
+    "bytes": 244605,
+    "sha256": "24e7f5d5b3f19e4288783415b500ee52243884c6836185fc9da1604975b30c89"
+  },
+  "scenarios": [
+    {
+      "name": "home",
+      "exercises": "plain SSR render, no server load",
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <./_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/2.BQRx_Q8S.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Bch01Hjx.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"g30o3j\"",
+          "content-length: 1103",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/home.html",
+        "body_bytes": 1103,
+        "body_sha256": "ffbabbeb58c9442d08b5ee8623a1252c33458ae879b3f932b983e03280da272b",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "item-html",
+      "exercises": "dynamic route param, server load, searchParams, escape_html, devalue uneval inlined in HTML",
+      "request": {
+        "method": "GET",
+        "path": "/items/1?q=hello%20world&tag=a&tag=b",
+        "headers": [
+          "accept: text/html",
+          "x-request-id: req-1"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/5.CZPCzDek.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"1usl6qp\"",
+          "content-length: 1989",
+          "set-cookie: ow_visits=1; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=1; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: req-1"
+        ],
+        "body_file": "oracle/item-html.html",
+        "body_bytes": 1989,
+        "body_sha256": "72fc399a419452cbeac8d72acdc010fdbeb26fcd828eb3731c93b812a6f0684d",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "item-data-json",
+      "exercises": "__data.json path: devalue stringify of Date/Map/Set/BigInt/RegExp/NaN/-0/undefined and a repeated reference",
+      "request": {
+        "method": "GET",
+        "path": "/items/1/__data.json?q=hello%20world&tag=a&tag=b",
+        "headers": [
+          "accept: application/json",
+          "x-sveltekit-invalidated: 01"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "content-type: application/json",
+          "cache-control: private, no-store",
+          "content-length: 547",
+          "set-cookie: ow_visits=1; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=1; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/item-data-json.json",
+        "body_bytes": 547,
+        "body_sha256": "9ac9c963cd9f27448f8bf72b0b39fb2d95a4348e909e01156fbb9384d60de427",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "item-cookie-read",
+      "exercises": "cookie parse on the way in, two Set-Cookie headers on the way out",
+      "request": {
+        "method": "GET",
+        "path": "/items/2",
+        "headers": [
+          "accept: text/html",
+          "cookie: ow_visits=41; ow_last_item=1"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/5.CZPCzDek.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"1cd7lee\"",
+          "content-length: 1995",
+          "set-cookie: ow_visits=42; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=2; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/item-cookie-read.html",
+        "body_bytes": 1995,
+        "body_sha256": "0c309ccdb092201aeab943ad4f16444821fb17c488edf41fc50ff3cb260b944a",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "item-not-found",
+      "exercises": "error(404) from load, +error.svelte render, $app/state page store",
+      "request": {
+        "method": "GET",
+        "path": "/items/999",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 404,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/1.c-qMHwmQ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Bch01Hjx.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"s5kpwu\"",
+          "content-length: 940",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/item-not-found.html",
+        "body_bytes": 940,
+        "body_sha256": "6d9370bb2b545dd824ff86c7c06c3e8bd1f81491008b47e83fb2b223e4c1c9ab",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "escape-static",
+      "exercises": "escape_html on a script tag literal, plus {@html} passthrough",
+      "request": {
+        "method": "GET",
+        "path": "/escape",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <./_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/3.CvR-gMNQ.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"kz2vkb\"",
+          "content-length: 1190",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/escape-static.html",
+        "body_bytes": 1190,
+        "body_sha256": "4d14ce26340999869906f1cd3a477861ecfa3894f8d093fe371744dbffe91ea4",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "escape-user-input",
+      "exercises": "percent-decoding of query values then escape_html in text and attribute position",
+      "request": {
+        "method": "GET",
+        "path": "/escape?input=%3Cscript%3Ealert(%22xss%22)%3C%2Fscript%3E&attr=%22%3E%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <./_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <./_app/immutable/nodes/3.CvR-gMNQ.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"1mi45fw\"",
+          "content-length: 1300",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/escape-user-input.html",
+        "body_bytes": 1300,
+        "body_sha256": "349f42dc8a5e755768e189305119d589c4d6718094c4fc87f0b8fbde378984ab",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "api-get",
+      "exercises": "+server.ts GET, json() helper, repeated query keys, locals set by hooks.server.ts",
+      "request": {
+        "method": "GET",
+        "path": "/api/echo?q=one&q=two",
+        "headers": [
+          "accept: application/json",
+          "x-request-id: req-api"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-fixture: echo",
+          "content-length: 97",
+          "content-type: application/json",
+          "x-fixture-hook: req-api"
+        ],
+        "body_file": "oracle/api-get.json",
+        "body_bytes": 97,
+        "body_sha256": "b921084d46a27ad23c69310f13047a05f89190872fe391850e6632a316f2aa33",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "api-get-error",
+      "exercises": "error(418) from an endpoint, JSON error body",
+      "request": {
+        "method": "GET",
+        "path": "/api/echo?boom=1",
+        "headers": [
+          "accept: application/json"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 418,
+        "headers": [
+          "content-length: 20",
+          "content-type: application/json",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/api-get-error.json",
+        "body_bytes": 20,
+        "body_sha256": "3a2bd5767602a6fe64a62cdec0195ae891855d567c4f9f597254e31736c75f95",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "api-post-json",
+      "exercises": "request.json() body read, JSON round trip",
+      "request": {
+        "method": "POST",
+        "path": "/api/echo",
+        "headers": [
+          "accept: application/json",
+          "content-type: application/json",
+          "x-request-id: req-post"
+        ],
+        "body": "{\"b\":2,\"a\":1,\"nested\":{\"x\":[1,2,3]}}"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "content-length: 108",
+          "content-type: application/json",
+          "x-fixture-hook: req-post"
+        ],
+        "body_file": "oracle/api-post-json.json",
+        "body_bytes": 108,
+        "body_sha256": "7f209bf29fbfff34ad39515ac007f45551bc98ace9ae957db7253b535cf52133",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "api-method-not-allowed",
+      "exercises": "405 from the router when the endpoint has no DELETE",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/echo",
+        "headers": [
+          "accept: application/json"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 405,
+        "headers": [
+          "allow: GET, POST, HEAD",
+          "content-length: 25",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/api-method-not-allowed.txt",
+        "body_bytes": 25,
+        "body_sha256": "a9a2f1619555f4c5a549e433e80e58416c45ecace4f37d88e643660a0612b7f9",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "redirect",
+      "exercises": "redirect(302) thrown from a page load",
+      "request": {
+        "method": "GET",
+        "path": "/go",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      },
+      "response": {
+        "status": 302,
+        "headers": [
+          "location: /items/1?from=go",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/redirect.txt",
+        "body_bytes": 0,
+        "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "action-form",
+      "exercises": "form action, x-www-form-urlencoded body, formData(), Set-Cookie, page re-render with form data",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name=Alice%20%26%20%3CBob%3E"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/5.CZPCzDek.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"hu7fsu\"",
+          "content-length: 2063",
+          "set-cookie: ow_greeted=Alice%20%26%20%3CBob%3E; Max-Age=60; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_visits=1; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=1; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/action-form.html",
+        "body_bytes": 2063,
+        "body_sha256": "19fdeac25a81fd60c0ab2965f748a0fbbea519827c0daa4468db46f88d258928",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "action-fail",
+      "exercises": "fail(400) from an action, re-render with the failure payload",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name="
+      },
+      "response": {
+        "status": 400,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/5.CZPCzDek.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"xv2z9\"",
+          "content-length: 2048",
+          "set-cookie: ow_visits=1; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=1; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/action-fail.html",
+        "body_bytes": 2048,
+        "body_sha256": "5727aa89bbd74de3159209d529c736d4a886cbc7eda6be31db6613de67811bbc",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "action-devalue",
+      "exercises": "enhanced form submit: action result serialized with devalue instead of an HTML re-render",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: application/json",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost",
+          "x-sveltekit-action: true"
+        ],
+        "body": "name=Alice"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "content-length: 125",
+          "content-type: application/json",
+          "set-cookie: ow_greeted=Alice; Max-Age=60; Path=/; HttpOnly; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/action-devalue.json",
+        "body_bytes": 125,
+        "body_sha256": "005aca431b55eafa6214726a14d247aeae1fa1e48d3948e075642e55ba362c59",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "urlencoded-plus",
+      "exercises": "'+' as space, in a query string and in a form body: the WHATWG urlencoded parser must decode it, and runtime-v8 currently does not",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet&q=hello+world",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name=Jo+Ann"
+      },
+      "response": {
+        "status": 200,
+        "headers": [
+          "x-sveltekit-page: true",
+          "content-type: text/html",
+          "link: <../_app/immutable/entry/start.Cdi7SdnJ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BUihv4v3.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/CcIqR-Qc.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/C_o0kGXZ.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/entry/app.06x3I-mg.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BvRvKIB-.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/BgEii5PD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cl0lefBD.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/chunks/Cbur-dz0.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/0.Bd8Q2Fvh.js>; rel=\"modulepreload\"; nopush, <../_app/immutable/nodes/5.CZPCzDek.js>; rel=\"modulepreload\"; nopush",
+          "etag: \"fl95oe\"",
+          "content-length: 2057",
+          "set-cookie: ow_greeted=Jo%2BAnn; Max-Age=60; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_visits=1; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+          "set-cookie: ow_last_item=1; Max-Age=60; Path=/items; SameSite=Lax",
+          "x-fixture-hook: none"
+        ],
+        "body_file": "oracle/urlencoded-plus.html",
+        "body_bytes": 2057,
+        "body_sha256": "f602f63df4f2f802debc920e826fb583b60c40905e2fa4c877d5e8f78af39e94",
+        "warm_identical": true
+      }
+    },
+    {
+      "name": "csrf-blocked",
+      "exercises": "SvelteKit CSRF check: form POST with no Origin header is refused",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded"
+        ],
+        "body": "name=Alice"
+      },
+      "response": {
+        "status": 403,
+        "headers": [
+          "content-length: 46"
+        ],
+        "body_file": "oracle/csrf-blocked.txt",
+        "body_bytes": 46,
+        "body_sha256": "5d7176df9432072c734822b2eda7d7cdc53789a83afa070d5ab31b63600fa39b",
+        "warm_identical": true
+      }
+    }
+  ]
+}

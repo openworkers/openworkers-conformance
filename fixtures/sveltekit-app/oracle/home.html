@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+  </head>
+  <body data-sveltekit-preload-data="off">
+    <div id="app"><!--[--><!--[0--><!--[--><main><!--[--><h1>OpenWorkers conformance fixture</h1> <ul><li><a href="/items/1">item 1</a></li> <li><a href="/items/2">item 2</a></li> <li><a href="/escape">escaping</a></li> <li><a href="/api/echo">echo endpoint</a></li> <li><a href="/go">redirect</a></li></ul><!--]--><!----></main><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1fk08u0 = {
+						base: new URL(".", location).pathname.slice(0, -1)
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("./_app/immutable/entry/start.Cdi7SdnJ.js"),
+						import("./_app/immutable/entry/app.06x3I-mg.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 2],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+  </body>
+</html>
