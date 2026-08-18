@@ -1,0 +1,229 @@
+{
+  "bundle": "build/_worker.js",
+  "base_url": "http://localhost",
+  "bindings": [
+    "ASSETS"
+  ],
+  "scenarios": [
+    {
+      "name": "home",
+      "exercises": "plain SSR render, no server load",
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "item-html",
+      "exercises": "dynamic route param, server load, searchParams, escape_html, devalue uneval inlined in HTML",
+      "request": {
+        "method": "GET",
+        "path": "/items/1?q=hello%20world&tag=a&tag=b",
+        "headers": [
+          "accept: text/html",
+          "x-request-id: req-1"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "item-data-json",
+      "exercises": "__data.json path: devalue stringify of Date/Map/Set/BigInt/RegExp/NaN/-0/undefined and a repeated reference",
+      "request": {
+        "method": "GET",
+        "path": "/items/1/__data.json?q=hello%20world&tag=a&tag=b",
+        "headers": [
+          "accept: application/json",
+          "x-sveltekit-invalidated: 01"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "item-cookie-read",
+      "exercises": "cookie parse on the way in, two Set-Cookie headers on the way out",
+      "request": {
+        "method": "GET",
+        "path": "/items/2",
+        "headers": [
+          "accept: text/html",
+          "cookie: ow_visits=41; ow_last_item=1"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "item-not-found",
+      "exercises": "error(404) from load, +error.svelte render, $app/state page store",
+      "request": {
+        "method": "GET",
+        "path": "/items/999",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "escape-static",
+      "exercises": "escape_html on a script tag literal, plus {@html} passthrough",
+      "request": {
+        "method": "GET",
+        "path": "/escape",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "escape-user-input",
+      "exercises": "percent-decoding of query values then escape_html in text and attribute position",
+      "request": {
+        "method": "GET",
+        "path": "/escape?input=%3Cscript%3Ealert(%22xss%22)%3C%2Fscript%3E&attr=%22%3E%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "api-get",
+      "exercises": "+server.ts GET, json() helper, repeated query keys, locals set by hooks.server.ts",
+      "request": {
+        "method": "GET",
+        "path": "/api/echo?q=one&q=two",
+        "headers": [
+          "accept: application/json",
+          "x-request-id: req-api"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "api-get-error",
+      "exercises": "error(418) from an endpoint, JSON error body",
+      "request": {
+        "method": "GET",
+        "path": "/api/echo?boom=1",
+        "headers": [
+          "accept: application/json"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "api-post-json",
+      "exercises": "request.json() body read, JSON round trip",
+      "request": {
+        "method": "POST",
+        "path": "/api/echo",
+        "headers": [
+          "accept: application/json",
+          "content-type: application/json",
+          "x-request-id: req-post"
+        ],
+        "body": "{\"b\":2,\"a\":1,\"nested\":{\"x\":[1,2,3]}}"
+      }
+    },
+    {
+      "name": "api-method-not-allowed",
+      "exercises": "405 from the router when the endpoint has no DELETE",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/echo",
+        "headers": [
+          "accept: application/json"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "redirect",
+      "exercises": "redirect(302) thrown from a page load",
+      "request": {
+        "method": "GET",
+        "path": "/go",
+        "headers": [
+          "accept: text/html"
+        ],
+        "body": null
+      }
+    },
+    {
+      "name": "action-form",
+      "exercises": "form action, x-www-form-urlencoded body, formData(), Set-Cookie, page re-render with form data",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name=Alice%20%26%20%3CBob%3E"
+      }
+    },
+    {
+      "name": "action-fail",
+      "exercises": "fail(400) from an action, re-render with the failure payload",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name="
+      }
+    },
+    {
+      "name": "action-devalue",
+      "exercises": "enhanced form submit: action result serialized with devalue instead of an HTML re-render",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: application/json",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost",
+          "x-sveltekit-action: true"
+        ],
+        "body": "name=Alice"
+      }
+    },
+    {
+      "name": "urlencoded-plus",
+      "exercises": "'+' as space, in a query string and in a form body: the WHATWG urlencoded parser must decode it, and runtime-v8 currently does not",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet&q=hello+world",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded",
+          "origin: http://localhost"
+        ],
+        "body": "name=Jo+Ann"
+      }
+    },
+    {
+      "name": "csrf-blocked",
+      "exercises": "SvelteKit CSRF check: form POST with no Origin header is refused",
+      "request": {
+        "method": "POST",
+        "path": "/items/1?/greet",
+        "headers": [
+          "accept: text/html",
+          "content-type: application/x-www-form-urlencoded"
+        ],
+        "body": "name=Alice"
+      }
+    }
+  ]
+}

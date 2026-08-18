@@ -1,0 +1,5 @@
+node_modules/
+.svelte-kit/
+# Client assets are never served here: the oracle answers every binding call
+# with a 404, so only the worker bundle is part of the fixture.
+build/assets/

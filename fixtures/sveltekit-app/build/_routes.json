@@ -1,0 +1,11 @@
+{
+  "immutable": [
+    "/_app/immutable/*"
+  ],
+  "static": [],
+  "prerendered": [],
+  "functions": [],
+  "ssr": [
+    "/*"
+  ]
+}
