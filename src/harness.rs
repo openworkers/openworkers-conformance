@@ -82,7 +82,7 @@ pub async fn run_js_test(code: &str) {
     run_in_local(|| async {
         let full_code = format!("{JS_HARNESS}\n{code}\n{JS_WRAPPER}");
 
-        let script = Script::new(&full_code);
+        let script = Script::new(full_code);
         let mut worker = Worker::new(script, None).await.unwrap();
 
         let req = HttpRequest {

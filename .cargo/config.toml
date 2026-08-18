@@ -1,2 +1,4 @@
 [env]
-RUNTIME_SNAPSHOT_PATH = { value = "/tmp/openworkers-runtime-v8-snapshot.bin", relative = false }
+# Kept empty on purpose: the oracle must render from source, like every other
+# runtime does, not from a V8 heap snapshot built by some other checkout.
+RUNTIME_SNAPSHOT_PATH = { value = "/tmp/openworkers-conformance-snapshot.bin", relative = false }
