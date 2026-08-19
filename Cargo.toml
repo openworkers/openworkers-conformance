@@ -6,17 +6,49 @@ license = "MIT"
 
 [features]
 default = []
-v8 = ["dep:openworkers-runtime-v8", "dep:openworkers-transform", "dep:sha2"]
+
+# Runtime backends, one per build
+v8 = ["dep:openworkers-runtime-v8", "dep:openworkers-transform", "dep:sha2", "_js"]
+jsc = ["dep:openworkers-runtime-jsc", "_js"]
+quickjs = ["dep:openworkers-runtime-quickjs", "_js"]
+boa = ["dep:openworkers-runtime-boa", "_js"]
+# The guest is a wasm component, not a script, so the JS suite reports a skip
+wasm = ["dep:openworkers-runtime-wasm", "openworkers-core/wasm"]
+
+# Internal: the backend evaluates JavaScript, so the suite applies to it
+_js = []
 
 [dependencies]
 openworkers-core = { git = "https://github.com/openworkers/openworkers-core", tag = "v0.14.0" }
-# Sibling checkout, like openworkers-runtime-v8 itself expects for core: the
-# oracle has to be produced by the runtime as it stands, not by a published tag.
+
+# Sibling checkouts, like the runtimes expect for core: a conformance number has
+# to come from the runtime as it stands, not from a published tag.
 openworkers-runtime-v8 = { path = "../openworkers-runtime-v8", optional = true, features = ["ptrcomp"] }
-# ESM -> classic script lowering, the same pass every runtime uses.
+openworkers-runtime-jsc = { path = "../openworkers-runtime-jsc", optional = true }
+openworkers-runtime-quickjs = { path = "../openworkers-runtime-quickjs", optional = true }
+openworkers-runtime-boa = { path = "../openworkers-runtime-boa", optional = true }
+openworkers-runtime-wasm = { path = "../openworkers-runtime-wasm", optional = true }
+# nova has no feature here: nova_vm 1.0 pulls temporal_rs 0.1.2, written against
+# icu_calendar 2.1, while v8 152 pulls temporal_capi 0.2.3+, which wants 2.2, and
+# one lockfile cannot hold both.
+
+# ESM -> classic script lowering, only the SSR oracle needs it.
 openworkers-transform = { git = "https://github.com/openworkers/openworkers-transform", tag = "v0.1.0", optional = true }
 
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = { version = "0.10", optional = true }
+
+[[bin]]
+name = "conformance"
+path = "src/main.rs"
+
+[[example]]
+name = "ssr_oracle"
+required-features = ["v8"]
+
+# The 152 alignment is unpublished, and cargo honours a patch only in the root manifest
+[patch.crates-io]
+openworkers-serde-v8 = { path = "../serde-v8" }
+openworkers-glue-v8 = { path = "../glue-v8" }
