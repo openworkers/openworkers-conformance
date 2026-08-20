@@ -8,7 +8,7 @@ license = "MIT"
 default = []
 
 # Runtime backends, one per build
-v8 = ["dep:openworkers-runtime-v8", "dep:openworkers-transform", "dep:sha2", "_js"]
+v8 = ["dep:openworkers-runtime-v8", "dep:openworkers-transform", "_js"]
 jsc = ["dep:openworkers-runtime-jsc", "_js"]
 quickjs = ["dep:openworkers-runtime-quickjs", "_js"]
 boa = ["dep:openworkers-runtime-boa", "_js"]
@@ -38,11 +38,18 @@ openworkers-transform = { git = "https://github.com/openworkers/openworkers-tran
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sha2 = { version = "0.10", optional = true }
+# The streaming battery builds request bodies and digests what comes back, so
+# both are needed on every backend, not only under the SSR oracle.
+bytes = "1"
+sha2 = "0.10"
 
 [[bin]]
 name = "conformance"
 path = "src/main.rs"
+
+[[bin]]
+name = "streaming"
+path = "src/bin/streaming.rs"
 
 [[example]]
 name = "ssr_oracle"

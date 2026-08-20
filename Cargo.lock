@@ -2280,6 +2280,7 @@ checksum = "cfe21416a02c693fb9f980befcb230ecc70b0b3d1cc4abf88b9675c4c1457f0c"
 name = "openworkers-conformance"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "openworkers-core",
  "openworkers-runtime-boa",
  "openworkers-runtime-jsc",
@@ -4349,6 +4350,7 @@ dependencies = [
  "async-trait",
  "bitflags 2.13.1",
  "bumpalo",
+ "bytes",
  "cc",
  "cfg-if",
  "encoding_rs",
@@ -4619,6 +4621,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "tokio",
+ "tokio-util",
  "tracing",
  "wasmtime",
  "wasmtime-wasi",

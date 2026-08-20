@@ -50,6 +50,10 @@ pub use openworkers_runtime_jsc::Worker;
 pub use openworkers_runtime_quickjs::Worker;
 #[cfg(feature = "v8")]
 pub use openworkers_runtime_v8::Worker;
+// The streaming battery drives this one too: it runs a component, but the
+// bodies it exchanges are the same core types.
+#[cfg(feature = "wasm")]
+pub use openworkers_runtime_wasm::WasmWorker as Worker;
 
 /// The default 50ms of CPU is a production budget; a test file needs more.
 #[cfg(feature = "_js")]
@@ -62,7 +66,6 @@ pub fn limits() -> openworkers_core::RuntimeLimits {
 }
 
 /// Guest console output would corrupt `--json`, and it is not what is measured.
-#[cfg(feature = "_js")]
 pub fn quiet_ops() -> openworkers_core::OperationsHandle {
     struct Quiet;
 
