@@ -1,4 +1,4 @@
-// New: the time-to-first-chunk probe. The guest emits {CHUNKS} chunks {DELAY}ms
+// The time-to-first-chunk probe. The guest emits {CHUNKS} chunks {DELAY}ms
 // apart and stamps each one with its own clock, so the host can tell a stream
 // that flows from one that only arrives once the guest is done.
 addEventListener('fetch', function (event) {

@@ -1,4 +1,4 @@
-// New: the backpressure probe. Production is pull-driven and every chunk
+// The backpressure probe. Production is pull-driven and every chunk
 // carries the guest clock at enqueue time, so comparing the guest's spread
 // against the host's arrival spread says whether a slow reader actually
 // reaches back to the producer.

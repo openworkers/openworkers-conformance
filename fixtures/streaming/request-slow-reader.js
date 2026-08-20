@@ -1,7 +1,6 @@
-// Ported from the openworkers-runner backpressure corpus
-// (test_backpressure_input_slow_consumer, test_backpressure_no_data_loss):
-// the guest waits {DELAY}ms per chunk, so a fast host producer has to be held
-// back by the channel instead of piling up somewhere.
+// Ported from the runner's test_backpressure_input_slow_consumer and
+// test_backpressure_no_data_loss: the guest waits {DELAY}ms per chunk, so a
+// fast host producer has to be held back by the channel rather than pile up.
 addEventListener('fetch', async function (event) {
     const reader = event.request.body.getReader();
     const decoder = new TextDecoder();

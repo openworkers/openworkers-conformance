@@ -113,7 +113,7 @@ pub struct Run {
 }
 
 impl Run {
-    /// One line per probe, plus a per-dimension tally.
+    /// One line per probe, grouped by dimension, and a tally to close.
     pub fn render(&self) -> String {
         let mut out = String::new();
         let width = self

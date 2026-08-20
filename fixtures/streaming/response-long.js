@@ -1,4 +1,4 @@
-// New: a long paced stream for the cancellation probe. The host walks away
+// A long paced stream for the cancellation probe. The host walks away
 // after a few chunks; what the guest does next is the measurement.
 addEventListener('fetch', function (event) {
     const encoder = new TextEncoder();

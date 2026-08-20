@@ -1,4 +1,4 @@
-// New: the guest errors its own stream after {GOOD} chunks. The host should
+// The guest errors its own stream after {GOOD} chunks. The host should
 // see an Err(...) on the channel, not a body that just stops.
 addEventListener('fetch', function (event) {
     const encoder = new TextEncoder();

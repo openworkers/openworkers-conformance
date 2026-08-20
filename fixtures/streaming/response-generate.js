@@ -1,4 +1,4 @@
-// New: {CHUNKS} chunks of {CHUNK_SIZE} bytes, produced as fast as the runtime
+// {CHUNKS} chunks of {CHUNK_SIZE} bytes, produced as fast as the runtime
 // takes them. The host hashes what comes out, so a dropped or reordered chunk
 // cannot pass as a size match.
 addEventListener('fetch', function (event) {

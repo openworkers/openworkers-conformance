@@ -114,6 +114,23 @@ platform's, not any one engine's.
   `OperationsHandler` it was given, which is why `--json` needs a
   `grep -v '^\[LOG\]'` on that backend.
 
+## Streaming battery
+
+The guest suite asks what a script can observe about itself. It cannot see a
+body that does not arrive all at once, because only the host is on the other
+end of the channel. `src/streaming/` is that second measurement, and
+[STREAMING.md](STREAMING.md) holds its matrix.
+
+```bash
+cargo run --release --features v8 --bin streaming
+cargo run --release --features jsc --bin streaming -- --filter backpressure
+cargo run --release --features wasm --bin streaming -- --json
+```
+
+25 probes on the JavaScript backends, 4 on `wasm`, each in its own thread with
+its own deadline, so a runtime that deadlocks mid-stream costs one line and
+gets reported as `hangs` rather than taking the run with it.
+
 ## Backends
 
 One cargo feature per backend, mutually exclusive, the same pattern as
