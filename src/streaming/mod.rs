@@ -124,10 +124,11 @@ pub fn run(filter: Option<&str>) -> Run {
     let mut probes = Vec::new();
 
     for case in corpus::all() {
-        if let Some(filter) = filter {
-            if !case.name.contains(filter) && !case.dimension.contains(filter) {
-                continue;
-            }
+        if let Some(filter) = filter
+            && !case.name.contains(filter)
+            && !case.dimension.contains(filter)
+        {
+            continue;
         }
 
         probes.push(probe(&case));
