@@ -777,9 +777,27 @@ async fn response_error_midstream() -> Result<Verdict, Verdict> {
     Ok(Verdict { outcome, measures })
 }
 
-/// The client walks away mid-stream. Nothing may hang, nothing may
-/// panic, and the worker has to be usable afterwards.
-async fn response_cancel_midstream() -> Result<Verdict, Verdict> {
+/// A client that hangs up must cost the worker its stream, not its life.
+const RECOVERY: Duration = Duration::from_secs(1);
+
+/// Past this the probe stops waiting and calls the worker stuck.
+const STUCK: Duration = Duration::from_secs(5);
+
+/// The contract `disconnect_recovery` checks, in two halves.
+///
+/// 1. The host drops the response receiver three chunks into a long stream.
+///    `exec` has to come back inside `RECOVERY`, rather than keep producing
+///    for a client that has left until the guest runs out of chunks.
+/// 2. The same worker has to answer a second fetch.
+///
+/// The second fetch is driven, not awaited. A backend that streams with real
+/// backpressure only ends `exec` once the host has drained the body, so a
+/// probe that awaited `exec` and read the body afterwards would deadlock
+/// against exactly the backends it is meant to reward.
+///
+/// Whether that second stream ever ends is not asked here; that is
+/// `response_pipeline_multiple`.
+async fn disconnect_recovery() -> Result<Verdict, Verdict> {
     let source = render(
         fixture!("response-long.js"),
         &[("CHUNKS", "200".to_string()), ("DELAY", "10".to_string())],
@@ -794,108 +812,154 @@ async fn response_cancel_midstream() -> Result<Verdict, Verdict> {
 
     // Scoped, because the borrow the first `exec` holds on the worker has to
     // end before the follow-up fetch can start.
-    let early = {
-        let (event, rx) = Event::fetch(get());
-        let started = Instant::now();
-        let future = worker.exec(event);
+    let recovery = match hang_up(&mut worker, &mut measures).await {
+        Ok(recovery) => recovery,
+        Err(outcome) => return Ok(Verdict { outcome, measures }),
+    };
 
-        tokio::pin!(future);
+    let followed = tokio::time::timeout(STUCK, follow_up(&mut worker, &mut measures)).await;
 
-        let mut exec: Exec<'_> = future;
-        let mut done: ExecResult = None;
+    let outcome = match followed {
+        Ok(outcome) => outcome,
+        Err(_) => {
+            measures.note(format!(
+                "the follow-up fetch was still going {}s in",
+                STUCK.as_secs()
+            ));
 
-        let response = match drive::head(&mut exec, &mut done, rx).await {
-            Ok(response) => response,
-            Err(detail) => {
-                measures.note(drive::exec_note(&done));
-
-                return Err(Verdict {
-                    outcome: Outcome::rejects(detail),
-                    measures,
-                });
-            }
-        };
-
-        match response.body {
-            ResponseBody::Stream(mut body) => {
-                let mut taken = 0;
-
-                while taken < 3 {
-                    match drive::while_running(&mut exec, &mut done, body.recv()).await {
-                        Some(Ok(_)) => taken += 1,
-                        _ => break,
-                    }
-                }
-
-                measures.chunks = Some(taken);
-                measures.note(format!(
-                    "{taken} chunks read over {}ms before hanging up",
-                    started.elapsed().as_millis()
-                ));
-
-                drop(body);
-
-                let hung_up = Instant::now();
-
-                drive::settle(&mut exec, &mut done, Duration::from_secs(5)).await;
-
-                // The number the probe is after: how long the worker stayed
-                // busy for a client that had already left.
-                measures.total_ms = Some(hung_up.elapsed().as_millis() as u64);
-                measures.note(drive::exec_note(&done));
-
-                done.is_some()
-            }
-            _ => {
-                measures
-                    .note("the body was not a stream, so there was nothing to cancel".to_string());
-
-                return Ok(Verdict {
-                    outcome: Outcome::skipped("the backend never streams a response"),
-                    measures,
-                });
-            }
+            Outcome::Hangs
         }
     };
 
-    if !early {
-        measures.note("exec never returned after the client hung up".to_string());
-
+    if outcome == Outcome::Ok && recovery > RECOVERY {
         return Ok(Verdict {
-            outcome: Outcome::Hangs,
+            outcome: Outcome::wrong(format!(
+                "the worker recovered, but only {}ms after the client left",
+                recovery.as_millis()
+            )),
             measures,
         });
     }
 
-    // The point of the probe: the worker has to survive its client leaving.
+    Ok(Verdict { outcome, measures })
+}
+
+/// Hangs up three chunks in and returns how long `exec` then took to come back.
+async fn hang_up(worker: &mut Worker, measures: &mut Measures) -> Result<Duration, Outcome> {
     let (event, rx) = Event::fetch(get());
+    let started = Instant::now();
+    let future = worker.exec(event);
 
-    match tokio::time::timeout(Duration::from_secs(5), worker.exec(event)).await {
-        Ok(Ok(())) => {}
-        Ok(Err(reason)) => {
-            measures.note(format!("the follow-up fetch failed: {reason:?}"));
+    tokio::pin!(future);
 
-            return Ok(Verdict {
-                outcome: Outcome::rejects("the worker was unusable after the client left"),
-                measures,
-            });
+    let mut exec: Exec<'_> = future;
+    let mut done: ExecResult = None;
+
+    let response = match drive::head(&mut exec, &mut done, rx).await {
+        Ok(response) => response,
+        Err(detail) => {
+            measures.note(drive::exec_note(&done));
+
+            return Err(Outcome::rejects(detail));
         }
-        Err(_) => {
-            measures.note("the follow-up fetch never returned: the worker is stuck".to_string());
+    };
 
-            return Ok(Verdict {
-                outcome: Outcome::Hangs,
-                measures,
-            });
+    let ResponseBody::Stream(mut body) = response.body else {
+        measures.note("the body was not a stream, so there was nothing to cancel".to_string());
+
+        return Err(Outcome::skipped("the backend never streams a response"));
+    };
+
+    let mut taken = 0;
+
+    while taken < 3 {
+        match drive::while_running(&mut exec, &mut done, body.recv()).await {
+            Some(Ok(_)) => taken += 1,
+            _ => break,
         }
     }
 
-    let outcome = match rx.await {
-        Ok(_) => Outcome::Ok,
-        Err(_) => Outcome::rejects("the follow-up fetch sent no response"),
+    measures.chunks = Some(taken);
+    measures.note(format!(
+        "{taken} chunks read over {}ms before hanging up",
+        started.elapsed().as_millis()
+    ));
+
+    drop(body);
+
+    let hung_up = Instant::now();
+
+    drive::settle(&mut exec, &mut done, STUCK).await;
+
+    let recovery = hung_up.elapsed();
+
+    measures.total_ms = Some(recovery.as_millis() as u64);
+    measures.note(drive::exec_note(&done));
+    measures.note(format!(
+        "exec came back {}ms after the client left",
+        recovery.as_millis()
+    ));
+
+    if done.is_none() {
+        return Err(Outcome::Hangs);
+    }
+
+    Ok(recovery)
+}
+
+/// Fetches the same worker again and reads far enough to prove bytes flow.
+async fn follow_up(worker: &mut Worker, measures: &mut Measures) -> Outcome {
+    let (event, rx) = Event::fetch(get());
+    let started = Instant::now();
+    let future = worker.exec(event);
+
+    tokio::pin!(future);
+
+    let mut exec: Exec<'_> = future;
+    let mut done: ExecResult = None;
+
+    let response = match drive::head(&mut exec, &mut done, rx).await {
+        Ok(response) => response,
+        Err(detail) => {
+            measures.note(format!("the follow-up fetch: {detail}"));
+            measures.note(drive::exec_note(&done));
+
+            return Outcome::rejects("the worker was unusable after the client left");
+        }
     };
 
-    Ok(Verdict { outcome, measures })
+    measures.note(format!(
+        "the follow-up head arrived {}ms in with status {}",
+        started.elapsed().as_millis(),
+        response.status
+    ));
+
+    let mut chunks = 0;
+
+    match response.body {
+        ResponseBody::None => {}
+        ResponseBody::Bytes(bytes) => chunks = usize::from(!bytes.is_empty()),
+        ResponseBody::Stream(mut body) => {
+            while chunks < 3 {
+                match drive::while_running(&mut exec, &mut done, body.recv()).await {
+                    Some(Ok(_)) => chunks += 1,
+                    _ => break,
+                }
+            }
+        }
+    }
+
+    measures.note(format!("the follow-up delivered {chunks} chunks"));
+
+    if response.status != 200 {
+        return Outcome::wrong(format!("the follow-up answered {}", response.status));
+    }
+
+    if chunks == 0 {
+        return Outcome::wrong("the follow-up answered with no body at all");
+    }
+
+    Outcome::Ok
 }
 
 /// Ported from `test_request_body_stream_echo`.
@@ -1304,10 +1368,10 @@ pub fn all() -> Vec<Case> {
             run: || Box::pin(async { Verdict::either(response_error_midstream().await) }),
         },
         Case {
-            name: "response_cancel_midstream",
+            name: "disconnect_recovery",
             dimension: "cancellation",
             budget: BUDGET,
-            run: || Box::pin(async { Verdict::either(response_cancel_midstream().await) }),
+            run: || Box::pin(async { Verdict::either(disconnect_recovery().await) }),
         },
         Case {
             name: "bidirectional_transform",

@@ -1,5 +1,5 @@
-// The control: no streams at all. Used to check a heap cap leaves room for the
-// baseline, and to check a worker still answers after a cancelled stream.
+// The control: no streams at all. Also used to check that a heap cap leaves
+// room for the baseline before a probe blames streaming for a boot failure.
 addEventListener('fetch', function (event) {
     event.respondWith(new Response('hello'));
 });
