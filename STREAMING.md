@@ -20,10 +20,11 @@ cargo run --release --features jsc --bin streaming -- --filter backpressure
 cargo run --release --features wasm --bin streaming -- --json
 ```
 
-Each probe runs in its own thread, with its own runtime and its own deadline,
-because two of the five backends deadlock somewhere in this corpus. A probe
-that hangs costs one line; the binary prints the report and exits without
-waiting for the stuck thread.
+Each probe runs in its own thread, with its own runtime and its own deadline. A
+probe that hangs costs one line; the binary prints the report and exits without
+waiting for the stuck thread. Nothing in this run reached its deadline, but a
+deadlock mid-stream is the kind of thing this corpus exists to find, so the
+guarantee stays.
 
 | verdict   | meaning                                                   |
 | --------- | --------------------------------------------------------- |
@@ -38,53 +39,54 @@ waiting for the stuck thread.
 
 ## Matrix
 
-Measured 2026-08-20. `n/a` means the probe belongs to the other corpus: wasm
-takes a component, not a script, so it runs four probes of its own.
+Measured 2026-08-21, all five backends against `openworkers-core` v0.15.0.
+`n/a` means the probe belongs to the other corpus: wasm takes a component, not
+a script, so it runs four probes of its own.
 
 | probe                             | v8      | jsc     | quickjs | boa     | wasm    |
 | --------------------------------- | ------- | ------- | ------- | ------- | ------- |
 | **request streaming**             |         |         |         |         |         |
-| `request_text`                    | ok      | wrong   | rejects | wrong   | n/a     |
-| `request_reader`                  | streams | rejects | rejects | wrong   | n/a     |
-| `request_json`                    | ok      | rejects | rejects | wrong   | n/a     |
-| `request_binary`                  | ok      | wrong   | rejects | wrong   | n/a     |
-| `request_utf8_boundary`           | ok      | wrong   | rejects | wrong   | n/a     |
-| `request_large`                   | streams | rejects | rejects | wrong   | n/a     |
-| `request_empty`                   | ok      | ok      | rejects | ok      | n/a     |
-| `request_double_consume`          | ok      | wrong   | rejects | wrong   | n/a     |
-| `request_never_consumed`          | ok      | ok      | rejects | ok      | n/a     |
-| `request_partial_read`            | ok      | rejects | rejects | wrong   | n/a     |
+| `request_text`                    | ok      | rejects | rejects | rejects | n/a     |
+| `request_reader`                  | streams | rejects | rejects | rejects | n/a     |
+| `request_json`                    | ok      | rejects | rejects | rejects | n/a     |
+| `request_binary`                  | ok      | rejects | rejects | rejects | n/a     |
+| `request_utf8_boundary`           | ok      | rejects | rejects | rejects | n/a     |
+| `request_large`                   | streams | rejects | rejects | rejects | n/a     |
+| `request_empty`                   | ok      | rejects | rejects | rejects | n/a     |
+| `request_double_consume`          | ok      | rejects | rejects | rejects | n/a     |
+| `request_never_consumed`          | ok      | rejects | rejects | rejects | n/a     |
+| `request_partial_read`            | ok      | rejects | rejects | rejects | n/a     |
 | **response streaming**            |         |         |         |         |         |
-| `response_ttfc`                   | streams | hangs   | buffers | wrong   | n/a     |
+| `response_ttfc`                   | streams | streams | buffers | wrong   | n/a     |
 | `response_buffered_shape`         | ok      | ok      | ok      | ok      | buffers |
-| `response_echo`                   | streams | wrong   | rejects | wrong   | n/a     |
-| `response_pipeline_multiple`      | hangs   | hangs   | ok      | wrong   | n/a     |
+| `response_echo`                   | streams | rejects | rejects | rejects | n/a     |
+| `response_pipeline_multiple`      | ok      | ok      | ok      | wrong   | n/a     |
 | **bidirectional**                 |         |         |         |         |         |
-| `bidirectional_transform`         | streams | wrong   | rejects | wrong   | n/a     |
+| `bidirectional_transform`         | streams | rejects | rejects | rejects | n/a     |
 | **mid-stream error**              |         |         |         |         |         |
-| `request_error_midstream`         | ok      | rejects | rejects | wrong   | wrong   |
-| `response_error_midstream`        | wrong   | wrong   | rejects | rejects | n/a     |
+| `request_error_midstream`         | ok      | rejects | rejects | rejects | ok      |
+| `response_error_midstream`        | ok      | ok      | rejects | rejects | n/a     |
 | **cancellation**                  |         |         |         |         |         |
-| `response_cancel_midstream`       | hangs   | hangs   | ok      | skipped | n/a     |
+| `disconnect_recovery`             | ok      | ok      | ok      | skipped | n/a     |
 | **backpressure**                  |         |         |         |         |         |
-| `backpressure_slow_reader`        | buffers | rejects | rejects | wrong   | n/a     |
-| `backpressure_minimal_buffer`     | buffers | rejects | rejects | wrong   | n/a     |
-| `backpressure_no_data_loss`       | buffers | rejects | rejects | wrong   | n/a     |
-| `backpressure_slow_drain`         | hangs   | hangs   | buffers | wrong   | n/a     |
+| `backpressure_slow_reader`        | buffers | rejects | rejects | rejects | n/a     |
+| `backpressure_minimal_buffer`     | buffers | rejects | rejects | rejects | n/a     |
+| `backpressure_no_data_loss`       | buffers | rejects | rejects | rejects | n/a     |
+| `backpressure_slow_drain`         | buffers | streams | buffers | wrong   | n/a     |
 | **integrity**                     |         |         |         |         |         |
-| `integrity_response_32mib`        | hangs   | hangs   | ok      | wrong   | n/a     |
-| `integrity_echo_32mib`            | ok      | wrong   | rejects | wrong   | n/a     |
-| `integrity_echo_32mib_capped`     | ok      | wrong   | rejects | wrong   | n/a     |
+| `integrity_response_32mib`        | ok      | ok      | ok      | wrong   | n/a     |
+| `integrity_echo_32mib`            | ok      | rejects | rejects | rejects | n/a     |
+| `integrity_echo_32mib_capped`     | ok      | rejects | rejects | rejects | n/a     |
 | `integrity_response_32mib_capped` | n/a     | n/a     | n/a     | n/a     | buffers |
 | `integrity_request_32mib_capped`  | n/a     | n/a     | n/a     | n/a     | ok      |
 
-| backend | totals                                          |
-| ------- | ----------------------------------------------- |
-| v8      | ok 12, streams 5, buffers 3, hangs 4, wrong 1    |
-| jsc     | wrong 9, rejects 8, hangs 5, ok 3                |
-| quickjs | rejects 19, buffers 2, ok 4                      |
-| boa     | wrong 20, ok 3, rejects 1, skipped 1             |
-| wasm    | buffers 2, ok 1, wrong 1                         |
+| backend | totals                                  |
+| ------- | --------------------------------------- |
+| v8      | ok 16, streams 5, buffers 4             |
+| jsc     | rejects 18, ok 5, streams 2             |
+| quickjs | rejects 19, ok 4, buffers 2             |
+| boa     | rejects 19, wrong 4, ok 1, skipped 1    |
+| wasm    | buffers 2, ok 2                         |
 
 ## Measurements
 
@@ -94,27 +96,50 @@ own clock.
 
 | backend | first chunk | last chunk | chunks | guest produced over |
 | ------- | ----------- | ---------- | -----: | ------------------- |
-| v8      | 43ms        | 380ms      |      8 | 295ms               |
-| quickjs | 378ms       | 378ms      |      8 | 294ms               |
-| jsc     | never       | never      |      0 | -                   |
+| v8      | 43ms        | 382ms      |      8 | 297ms               |
+| jsc     | 43ms        | 384ms      |      8 | 299ms               |
+| quickjs | 383ms       | 383ms      |      8 | 299ms               |
 | boa     | never       | never      |      0 | -                   |
 
-quickjs is the interesting line: its guest paced itself correctly over 294ms,
-and all eight chunks still reached the host in the same millisecond, 378ms in.
+quickjs is the line to read twice: its guest paced itself correctly over 299ms,
+and all eight chunks still reached the host in the same millisecond, 383ms in.
 That is what a replay of an already-collected body looks like from the outside.
+
+`backpressure_slow_drain` asks the reverse question, with a pull-driven guest of
+60 chunks against a host that pauses 20ms per read. If the slow reader reaches
+back, the guest's own stamps spread to match.
+
+| backend | guest produced over | host read over | verdict |
+| ------- | ------------------- | -------------- | ------- |
+| jsc     | 703ms               | 1357ms         | streams |
+| v8      | 536ms               | 1324ms         | buffers |
+| quickjs | 2ms                 | 1368ms         | buffers |
+| boa     | -                   | 0ms, 0 bytes   | wrong   |
+
+`disconnect_recovery` drops the response receiver three chunks in, then fetches
+the same worker again.
+
+| backend | chunks, and when | exec back after | follow-up head |
+| ------- | ---------------- | --------------- | -------------- |
+| v8      | 3 over 38ms      | 13ms            | 0ms            |
+| jsc     | 3 over 40ms      | 13ms            | 0ms            |
+| quickjs | 3 over 2571ms    | 0ms             | 2547ms         |
+| boa     | no stream        | -               | -              |
 
 The rest, where a body arrived at all:
 
-| probe                       | backend | first  | last   | chunks | bytes    |
-| --------------------------- | ------- | ------ | ------ | -----: | -------: |
-| `response_echo`             | v8      | 0ms    | 26ms   |      4 |       12 |
-| `bidirectional_transform`   | v8      | 0ms    | 32ms   |      5 |        6 |
-| `integrity_echo_32mib`      | v8      | 0ms    | 0ms    |    512 | 33554432 |
-| `backpressure_slow_drain`   | quickjs | 1ms    | 1307ms |     60 |     1010 |
-| `integrity_response_32mib`  | quickjs | 34ms   | 34ms   |    512 | 33554432 |
-| `response_ttfc`             | quickjs | 378ms  | 378ms  |      8 |      128 |
-| `integrity_response_32mib_capped` | wasm | 9ms | 9ms |      1 | 33554432 |
-| `integrity_request_32mib_capped`  | wasm | 43ms | 43ms |      1 |        8 |
+| probe                             | backend | first | last   | chunks |    bytes |
+| --------------------------------- | ------- | ----- | ------ | -----: | -------: |
+| `response_echo`                   | v8      | 0ms   | 29ms   |      4 |       12 |
+| `bidirectional_transform`         | v8      | 1ms   | 33ms   |      5 |        6 |
+| `integrity_response_32mib`        | v8      | 6ms   | 102ms  |    512 | 33554432 |
+| `integrity_response_32mib`        | jsc     | 7ms   | 57ms   |    512 | 33554432 |
+| `integrity_response_32mib`        | quickjs | 83ms  | 83ms   |    512 | 33554432 |
+| `integrity_echo_32mib`            | v8      | 0ms   | 0ms    |    512 | 33554432 |
+| `response_pipeline_multiple`      | v8      | 1ms   | 4ms    |     32 |      534 |
+| `response_pipeline_multiple`      | jsc     | 1ms   | 3ms    |     32 |      534 |
+| `integrity_response_32mib_capped` | wasm    | 10ms  | 10ms   |      1 | 33554432 |
+| `integrity_request_32mib_capped`  | wasm    | 2ms   | 2ms    |      1 |        8 |
 
 `integrity_echo_32mib` on v8 reads 0ms for both because the host had already
 queued all 32 MiB into the request channel before `exec` started; the 512 chunks
@@ -123,87 +148,82 @@ clock.
 
 ## What the numbers say
 
-**One backend streams a response.** v8 is the only runtime where a chunk
-reaches the host while the guest is still producing: 43ms to the first of eight
-chunks paced 40ms apart, 380ms to the last. jsc sends the response head early
-but never delivers the end of the stream. quickjs reports `ResponseBody::Stream`
-for every body, including a plain string, and fills it from a `Vec<Vec<u8>>` it
-has already materialised. boa has no `ResponseBody::Stream` branch at all, and
-extracts a body by concatenating whatever is already sitting in the stream
-controller's queue, so a pull-driven producer yields nothing.
+**Two backends stream a response.** v8 and jsc both put the first of eight
+40ms-paced chunks on the wire at 43ms and the last around 380ms, while the guest
+is still producing. quickjs reports `ResponseBody::Stream` for every body,
+including a plain string, and fills it from a buffer it has already
+materialised. boa has no `ResponseBody::Stream` branch at all: it drains a
+response body through a synchronous `__extractBody` helper, so whatever a guest
+produces from a timer or a pull callback is gone by the time the helper runs,
+and the host gets 0 bytes.
 
-**A guest `ReadableStream` that closes on a full buffer deadlocks v8.**
-`response_pipeline_multiple` isolates it: a pull-driven producer closing after
-exactly 32 chunks, read as fast as the host can, never delivers end-of-stream.
-The trigger is the state of the 16-slot hop at `controller.close()`, not the
-count:
+**Response backpressure reaches the guest on jsc only.** Against a host reading
+one chunk every 20ms, the jsc guest spread its 60 chunks over 703ms, which
+clears the probe's 2x threshold. The v8 guest spread over 536ms against a host
+reading over 1324ms, so some pressure reaches it, but not enough to track the
+reader; the probe calls that `buffers`. The quickjs guest was done in 2ms.
 
-| chunks | reader | result |
-| -----: | ------ | ------ |
-| 8      | fast   | ends   |
-| 16     | fast   | hangs  |
-| 17     | fast   | ends   |
-| 32     | fast   | hangs  |
-| 47     | fast   | ends   |
-| 48     | fast   | hangs  |
-| 24     | 20ms   | ends   |
-| 60     | 20ms   | hangs  |
-
-Below 32 chunks the two-hop pipeline swallows everything and nothing ever
-blocks. Above it, a reader slow enough to keep the buffer full deadlocks at any
-count. This takes `integrity_response_32mib` (512 chunks) and
-`backpressure_slow_drain` (60 chunks, 20ms reader) with it, so v8 response
-backpressure has no measurement here: it deadlocks as soon as it is exercised.
-The path that forwards a request body straight back out is not affected, which
-is why `integrity_echo_32mib` moves the same 512 chunks without trouble.
-
-**A client that leaves takes the v8 worker with it.** After the host drops the
-response receiver three chunks into a 200-chunk stream, `exec` returns `Ok`,
-but only after 5001ms, and the next fetch on the same worker never returns. The
-disconnect is detected; the recovery is not. jsc never gets that far, because
-its paced stream delivers no chunks to cancel. quickjs passes for the wrong
-reason: it had already run the guest to completion, so hanging up costs
-nothing, and the three chunks the host asked for took 2414ms to appear.
-
-**A guest that errors its own stream is indistinguishable from one that
-finished.** `controller.error(...)` after two chunks arrives at the host as two
-chunks and a clean end of channel on both v8 and jsc. Nothing ever puts an
-`Err` on the response channel, so a truncated response reads as complete
-downstream. quickjs turns the same case into
-`Exception("Failed to read chunk")` and sends no response at all, which loses
-the two good chunks but at least says something happened.
-
-**An `Err` chunk in a request body is dropped on the way in.** The wasm probe
-shows it most plainly, because its guest counts bytes: 64 KiB, then
-`Err("connection reset")`, then another 64 KiB, and the guest reports 131072 as
-a success. `RequestBody::collect` in `openworkers-core` keeps the `Ok` arm and
-has no `else`, so every runtime that collects inherits it. v8, which does not
-collect, is the only backend that surfaces it: the guest's `reader.read()`
-rejects with the upstream message.
+**A pull-driven guest that closes on a full pipeline delivers end-of-stream.**
+`response_pipeline_multiple` closes after exactly 32 chunks, twice the 16-slot
+high-water mark every runtime here picked, read as fast as the host can. v8, jsc
+and quickjs all deliver 32 stamped lines. boa delivers none, for the same reason
+it delivers none of anything asynchronous.
 
 **Request streaming exists on v8 only, and it has no backpressure.** v8 hands
 the guest a real `ReadableStream` with the chunk boundaries intact: 3 chunks in,
 3 seen; 100 chunks in, 100 seen. But the host channel is drained as fast as it
-fills, whatever its capacity. 20 chunks through a 4-slot channel are accepted in
-0ms while the guest is still sleeping 2ms per chunk, 10 chunks through a
-1-slot channel likewise, and a guest that never reads the body still lets all 5
-chunks through. `reader.cancel()` does not close the channel either, so the
-producer uploads all 10 chunks to a guest that stopped listening after the
-first.
+fills, whatever its capacity. 10 chunks through a 4-slot channel are accepted in
+0ms against a 15ms floor, 10 through a 1-slot channel likewise, and 20 through 4
+slots in 0ms against a 16ms floor, all while the guest sleeps per chunk. A guest
+that never reads the body still lets all 5 chunks through in 65ms with the
+channel open, and `reader.cancel()` after the first chunk does not close it
+either, so the producer uploads all 10 to a guest that stopped listening.
 
-The other three refuse the shape rather than mishandle it, with varying
-honesty. quickjs returns `Err(Other("Streaming request bodies are not
-supported"))`, the only answer of the four a caller can act on. jsc turns
-`RequestBody::Stream` into an empty body and answers 200: `text()` gives `""`,
-`arrayBuffer()` gives 0 bytes, and `request.body` is null, so every reader
-fixture throws and the worker burns its whole wall-clock budget before
-returning `WallClockTimeout`. boa does the same and answers 500.
+**The other three refuse a streamed request body, and all three say so.** jsc
+answers `Other("Streaming request bodies are not supported: collect the body
+into RequestBody::Bytes before calling exec")`, the only one of the three that
+names the fix; quickjs and boa answer `Other("Streaming request bodies are not
+supported")`. The refusal costs jsc 18 of its 25 probes and quickjs and boa 19
+each, and it is worth more than any of them scoring on a body they quietly
+truncated.
+
+**A guest that errors its own stream reaches the host as an error.**
+`controller.error(...)` after two chunks arrives on v8 and jsc as two chunks
+followed by `Err("guest gave up mid-stream")` on the response channel, so a
+truncated response is distinguishable from a complete one. quickjs turns the
+same case into `Exception("Failed to read chunk: Exception generated by
+QuickJS")` and sends no response at all, which loses the two good chunks but at
+least says something happened. boa answers 200 with an empty body, the one shape
+a caller cannot tell from a legitimate short response.
+
+**An `Err` chunk in a request body stops the read.** `RequestBody::collect` in
+core 0.15 returns at the first failed chunk, so the wasm runtime refuses the
+request with `Other("request body failed: connection reset")` rather than
+handing its guest 131072 stitched bytes to count as a complete upload. v8, which
+does not collect, surfaces it inside the guest: `reader.read()` rejects with the
+upstream message. The other three never reach the question, having refused the
+streamed body outright.
+
+**A client that leaves costs the worker its stream, not its life.** Three chunks
+into a 200-chunk stream the host drops the receiver; on v8 and jsc `exec` comes
+back 13ms later and the next fetch on the same worker answers with its head at
+0ms. quickjs passes for a different reason: it had already run the guest to
+completion before sending the head, so hanging up costs nothing, and the three
+chunks the host asked for took 2571ms to appear. boa is skipped, having no
+response stream to cancel.
 
 **32 MiB survives the round trip where a round trip exists.** v8 echoes 32 MiB
-back byte for byte in 512 chunks, and does it again under a 16 MB heap cap.
-wasm moves the same 32 MiB in both directions under an 8 MB cap with a matching
-digest, but hands the host one `Bytes`: the p3 boundary streams inside the
-guest and buffers at `HttpResponse`.
+back byte for byte in 512 chunks, uncapped and again under a 16 MB heap cap. v8
+and jsc both generate the same 32 MiB out of a guest with a matching digest,
+over 102ms and 57ms; quickjs matches the digest too but delivers all 512 chunks
+in the same millisecond, 83ms in. boa produces 0 bytes. wasm moves 32 MiB in
+both directions under an 8 MB cap with matching digests and hands the host one
+`Bytes`: the p3 boundary streams inside the guest and buffers at `HttpResponse`.
+
+**A plain string body is not a stream, except where it is.** v8, boa and wasm
+return `ResponseBody::Bytes` for `new Response('hello')`; jsc and quickjs wrap
+those five bytes in a `ResponseBody::Stream` of one chunk. A host that switches
+on the variant to decide how to forward a body learns nothing from it.
 
 **`stream_buffer_size` is decoration.** `RuntimeLimits` carries it, the probes
 vary the request channel capacity from 1 to 16, and nothing about any
@@ -239,7 +259,7 @@ disagreement between the three can be looked up rather than re-derived.
 | `response_buffered_shape`     | new                                                  |
 | `response_pipeline_multiple`  | new                                                  |
 | `response_error_midstream`    | new                                                  |
-| `response_cancel_midstream`   | new                                                  |
+| `disconnect_recovery`         | new                                                  |
 | `backpressure_slow_drain`     | new                                                  |
 | `integrity_response_32mib`    | new                                                  |
 | `integrity_echo_32mib`        | new                                                  |
@@ -250,6 +270,13 @@ five backends instead of one. `bidirectional_transform` keeps the runner's
 cadence, the one that matters: a two-slot request channel fed every 5ms while
 the host reads the doubled values back with 2ms between chunks.
 
+`disconnect_recovery` states its contract in `src/streaming/cases.rs`: `exec`
+has to come back within a second of the receiver being dropped, and the same
+worker has to answer a second fetch. That second fetch is driven alongside
+`exec` rather than awaited before the body is read, because a backend whose
+`exec` ends only once the host has drained the body would otherwise deadlock
+against the probe and be reported for it.
+
 The four wasm probes are their own corpus, driven by the `fetch-worker-v3`
 example in `openworkers-runtime-wasm`, because that backend takes a component
 rather than a script. They ask the one question the p3 tests in
@@ -258,18 +285,20 @@ reaches `HttpResponse`.
 
 ## Reproducing
 
-Measured 2026-08-20, against these checkouts:
+Measured 2026-08-21 on aarch64-apple-darwin, against these checkouts. Every one
+of them builds against `openworkers-core` v0.15.0, whatever its branch name
+says.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `feat/upstream-v8`             | `bdf102f` |
-| jsc     | `feat/core-0.14`               | `b3a61b9` |
-| quickjs | `feat/core-0.14`               | `7ca14d3` |
-| boa     | `feat/core-0.14`               | `e19da53` |
-| wasm    | `feat/core-0.14-wasmtime-bump` | `e385bae` |
+| v8      | `main`                         | `fe3fb23` |
+| jsc     | `feat/core-0.14`               | `2df2560` |
+| quickjs | `feat/core-0.14`               | `ed14afe` |
+| boa     | `feat/core-0.14`               | `9dec1ee` |
+| wasm    | `feat/core-0.14-wasmtime-bump` | `c97afa3` |
 
-The v8 numbers come from a build without pointer compression, because no
-pointer-compressed v8 152 archive exists on this machine and `Cargo.toml` keeps
-the `ptrcomp` feature the rest of the workspace uses. Heap layout has no
-bearing on a body crossing a channel, but the two builds are not the same
-binary.
+The v8 numbers are pointer-compressed, the build the rest of the workspace uses.
+`openworkers-v8` fetches its own prebuilt at build time
+(`librusty_v8_ptrcomp_release_aarch64-apple-darwin.a.gz` from the
+`openworkers/rusty-v8` release matching its version), so no `RUSTY_V8_*`
+variable has to be set for any of this.
