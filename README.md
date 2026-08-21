@@ -55,64 +55,68 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 
 ## Scoreboard
 
-Measured 2026-08-19, one commit per runtime, all against `openworkers-core`
-v0.14.0.
+Measured 2026-08-21, one commit per runtime, all against `openworkers-core`
+v0.15.0.
 
 | area                 | v8      | jsc     | quickjs | boa     |
 | -------------------- | ------- | ------- | ------- | ------- |
-| crypto (30)          | 22      | 23      | 21      | 10      |
+| crypto (30)          | 30      | 23      | 21      | 10      |
 | encoding (55)        | 45      | 33      | 44      | 47      |
 | globals (109)        | 86      | 37      | 43      | 80      |
 | headers (28)         | 23      | 24      | 24      | 24      |
-| request (29)         | 21      | 19      | 16      | 20      |
+| request (29)         | 22      | 19      | 16      | 20      |
 | response (38)        | 28      | 27      | 21      | 30      |
 | streams (25)         | 13      | 12      | 11      | 13      |
-| url (68)             | 46      | 66      | 66      | 66      |
-| wintercg (66)        | 36      | 27      | 24      | 29      |
-| **total (448)**      | **320** | **268** | **270** | **319** |
-|                      | 71%     | 59%     | 60%     | 71%     |
+| url (68)             | 68      | 66      | 66      | 66      |
+| wintercg (66)        | 38      | 27      | 24      | 29      |
+| **total (448)**      | **353** | **268** | **270** | **319** |
+|                      | 78%     | 59%     | 60%     | 71%     |
 
-| backend | branch                       | commit    |
-| ------- | ---------------------------- | --------- |
-| v8      | `feat/upstream-v8`           | `8f6710c` |
-| jsc     | `feat/core-0.14`             | `2f82095` |
-| quickjs | `feat/core-0.14`             | `7ca14d3` |
-| boa     | `feat/core-0.14`             | `e19da53` |
-| wasm    | `feat/core-0.14-wasmtime-bump` | `54ee096` |
+Branch names lag the code: every one of these builds against core v0.15.0.
+
+| backend | branch                         | commit    |
+| ------- | ------------------------------ | --------- |
+| v8      | `main`                         | `fe3fb23` |
+| jsc     | `feat/core-0.14`               | `2df2560` |
+| quickjs | `feat/core-0.14`               | `ed14afe` |
+| boa     | `feat/core-0.14`               | `9dec1ee` |
+| wasm    | `feat/core-0.14-wasmtime-bump` | `c97afa3` |
 
 ### What the numbers say
 
-84 of the 448 tests fail on all four backends, so most of the gap is the
+77 of the 448 tests fail on all four backends, so most of the gap is the
 platform's, not any one engine's.
 
-- **v8 has the weakest `URL`**, at 46/68. It normalizes nothing: no
-  default-port removal, no dot-segment removal, no percent-encoding, no
-  punycode, no lowercasing, no setters, no `toJSON`, no `canParse`, and it
-  accepts `new URL('not a url')`. jsc, quickjs and boa back `URL` with the
-  `url` crate and score 66/68; boa is the only backend to take `url.js` whole.
-- **boa scores like v8 overall** (319 against 320) on the strength of
-  `boa_wintertc`, while being the weakest on crypto by far (10/30).
+- **v8 is the only backend with a complete `URL` and a complete `crypto`**,
+  68/68 and 30/30. Its `subtle` covers the six digests, AES-GCM round trips,
+  raw HMAC and AES key import and export, and ECDSA key generation. jsc and
+  quickjs stop after digest and HMAC; boa has no `subtle.digest` at all, which
+  is most of the distance between its 10/30 and everyone else.
+- **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
+  `url.js`; boa takes `url.js` whole and loses its two points on
+  `URLSearchParams`. All three back `URL` with the `url` crate.
+- **boa is 34 behind v8** (319 against 353) on the strength of `boa_wintertc`,
+  while being the weakest on crypto by far.
 - **No backend exposes `Event` or `EventTarget`**, so the DOM event core of the
-  Minimum Common API is missing everywhere, and with it `{ once: true }`,
-  `CustomEvent` and `AbortSignal.any`. `AbortController` itself exists on v8
-  and boa only.
-- **No backend sorts `Headers` iteration** by name, and none validates a header
-  name or value: `set('x a', ...)` and a value with a newline both go through.
+  Minimum Common API is missing everywhere, and with it `CustomEvent`,
+  `ErrorEvent`, `MessageEvent`, `PromiseRejectionEvent` and `AbortSignal.any`.
+  `AbortController` exists on v8 (8/8) and boa (6/8) only.
+- **No backend sorts `Headers` iteration** by name, none rejects an invalid
+  name or a value with a newline, and none trims whitespace around a value. v8
+  alone also fails to comma-join `Set-Cookie` in `get`.
 - **No backend sets `Content-Type` from the body** on `Request` or `Response`,
-  so a string body arrives without `text/plain;charset=UTF-8`, and none
-  enforces the status rules (a body with 204, a status of 600).
+  so neither a string nor a `URLSearchParams` arrives with its type, and none
+  enforces the status rules (a body with 204 or 304, a status below 200 or
+  above 599).
 - **Streams stop at `ReadableStream`**: `WritableStream`, `TransformStream`,
-  the queuing strategies, `TextEncoderStream`/`TextDecoderStream` and
-  `CompressionStream` are missing on all four, `tee` exists on v8 and boa only,
-  and no backend makes a stream async-iterable.
+  the queuing strategies, `TextEncoderStream`/`TextDecoderStream`,
+  `CompressionStream`, `pipeTo` and `ReadableStream.from` are missing on all
+  four, `tee` exists on v8 and boa only, and no backend makes a stream
+  async-iterable.
 - **`structuredClone`, `Blob` and `File` exist on v8 and boa only**, and
   `multipart/form-data` parses on v8 alone.
-- **v8 `getRandomValues` takes `Uint8Array` only**, returning `undefined`
-  instead of filling any other integer array; the other three handle all of
-  them.
-- **jsc `console.*` writes straight to stdout** with `println!`, ignoring the
-  `OperationsHandler` it was given, which is why `--json` needs a
-  `grep -v '^\[LOG\]'` on that backend.
+- **`performance` exists on v8 and quickjs**, and only quickjs carries
+  `timeOrigin`; `self` exists on v8 and boa.
 
 ## Streaming battery
 
