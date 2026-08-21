@@ -145,6 +145,12 @@ async fn exchange(limits: RuntimeLimits, request: HttpRequest) -> Result<Exchang
     let response = match drive::head(&mut exec, &mut done, rx).await {
         Ok(response) => response,
         Err(detail) => {
+            // The interesting half of "no response" is why exec gave up.
+            let detail = match &done {
+                Some(Err(reason)) => format!("{detail}: {reason:?}"),
+                _ => detail,
+            };
+
             let mut verdict = Verdict::new(Outcome::rejects(detail));
 
             verdict.measures.note(drive::exec_note(&done));
@@ -253,8 +259,8 @@ async fn integrity_request() -> Result<Verdict, Verdict> {
     Ok(Verdict { outcome, measures })
 }
 
-/// An `Err` chunk mid-upload. `RequestBody::collect` drops it, so the guest
-/// should end up counting fewer bytes and calling that a success.
+/// An `Err` chunk mid-upload. The wanted answer is a refusal that carries the
+/// upstream message, not a short body the guest counts as a complete upload.
 async fn request_error_midstream() -> Result<Verdict, Verdict> {
     let (tx, rx) = mpsc::channel(16);
 
@@ -264,11 +270,28 @@ async fn request_error_midstream() -> Result<Verdict, Verdict> {
         let _ = tx.send(Ok(Bytes::from(vec![b'a'; CHUNK]))).await;
     });
 
-    let exchange = exchange(
-        limits(0),
-        request(HttpMethod::Post, "/consume", RequestBody::Stream(rx)),
-    )
-    .await?;
+    let request = request(HttpMethod::Post, "/consume", RequestBody::Stream(rx));
+
+    let exchange = match exchange(limits(0), request).await {
+        Ok(exchange) => exchange,
+        // A refusal repeating the message the probe injected has surfaced the
+        // truncation; any other refusal is still a refusal.
+        Err(mut verdict) => {
+            let named = verdict
+                .outcome
+                .detail()
+                .is_some_and(|detail| detail.contains("connection reset"));
+
+            if named {
+                verdict.outcome = Outcome::Ok;
+                verdict
+                    .measures
+                    .note("the refusal carried the upstream message");
+            }
+
+            return Ok(verdict);
+        }
+    };
 
     let mut measures = exchange.measures();
     let text = exchange.drained.text();
