@@ -2296,9 +2296,10 @@ dependencies = [
 
 [[package]]
 name = "openworkers-core"
-version = "0.14.0"
-source = "git+https://github.com/openworkers/openworkers-core?tag=v0.14.0#cde0327cedeb21af4a540312479f91282e7ac0be"
+version = "0.15.0"
+source = "git+https://github.com/openworkers/openworkers-core?tag=v0.15.0#d13fde762478e3c08c5803995e3b250a076480e3"
 dependencies = [
+ "base64 0.22.1",
  "bytes",
  "http-body-util",
  "hyper",
@@ -2310,7 +2311,9 @@ dependencies = [
 
 [[package]]
 name = "openworkers-glue-v8"
-version = "152.0.0"
+version = "152.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d464ac710034f741dd0099884e1086ed39e2738501a892cd6fd3e236eedc2e7d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2319,7 +2322,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-boa"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -2336,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-jsc"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "bytes",
  "env_logger",
@@ -2354,7 +2357,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-quickjs"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -2370,7 +2373,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-v8"
-version = "0.14.2"
+version = "0.15.0"
 dependencies = [
  "bytes",
  "encoding_rs",
@@ -2380,6 +2383,7 @@ dependencies = [
  "openworkers-glue-v8",
  "openworkers-runtime-v8-gc-derive",
  "openworkers-serde-v8",
+ "openworkers-v8",
  "ring",
  "serde",
  "serde_json",
@@ -2391,7 +2395,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "v8",
 ]
 
 [[package]]
@@ -2405,7 +2408,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-wasm"
-version = "0.1.0"
+version = "0.15.0"
 dependencies = [
  "bytes",
  "http-body-util",
@@ -2420,14 +2423,16 @@ dependencies = [
 
 [[package]]
 name = "openworkers-serde-v8"
-version = "152.0.0"
+version = "152.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0d3040092bb6890f54153965cda7c073c73a7cb6ff4afd5307c82f004d5c662"
 dependencies = [
  "bytes",
  "num-bigint 0.4.6",
+ "openworkers-v8",
  "serde",
  "smallvec",
  "thiserror 2.0.18",
- "v8",
 ]
 
 [[package]]
@@ -2442,6 +2447,23 @@ dependencies = [
  "swc_ecma_transforms_base",
  "swc_ecma_transforms_typescript",
  "swc_ecma_visit",
+]
+
+[[package]]
+name = "openworkers-v8"
+version = "152.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd249dbf016f1e6a570707d7d9b8a846d05f14ee1adb271af864ff4a5dbb5db6"
+dependencies = [
+ "bindgen",
+ "bitflags 2.13.1",
+ "fslock",
+ "gzip-header",
+ "home",
+ "miniz_oxide",
+ "paste",
+ "temporal_capi",
+ "which",
 ]
 
 [[package]]
@@ -4131,23 +4153,6 @@ dependencies = [
  "getrandom 0.4.2",
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "v8"
-version = "152.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb60870e5cff45e02719ab782f1c67507d33c4ef184755656bcc11a9795ccf83"
-dependencies = [
- "bindgen",
- "bitflags 2.13.1",
- "fslock",
- "gzip-header",
- "home",
- "miniz_oxide",
- "paste",
- "temporal_capi",
- "which",
 ]
 
 [[package]]

@@ -180,7 +180,8 @@ async fn dispatch(
     worker.exec(task).await.expect("exec failed");
 
     let res = rx.await.expect("no response");
-    let body = res.body.collect().await.unwrap_or_default();
+    // A failed stream stops the recording, or a short body becomes the oracle.
+    let body = res.body.collect().await.expect("body stream failed");
 
     let headers = res
         .headers
@@ -188,7 +189,7 @@ async fn dispatch(
         .map(|(k, v)| format!("{k}: {v}"))
         .collect();
 
-    (res.status, headers, body.to_vec())
+    (res.status, headers, body.unwrap_or_default().to_vec())
 }
 
 fn git_rev(repo: &Path) -> String {

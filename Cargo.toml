@@ -19,7 +19,7 @@ wasm = ["dep:openworkers-runtime-wasm", "openworkers-core/wasm"]
 _js = []
 
 [dependencies]
-openworkers-core = { git = "https://github.com/openworkers/openworkers-core", tag = "v0.14.0" }
+openworkers-core = { git = "https://github.com/openworkers/openworkers-core", tag = "v0.15.0" }
 
 # Sibling checkouts, like the runtimes expect for core: a conformance number has
 # to come from the runtime as it stands, not from a published tag.
@@ -54,8 +54,3 @@ path = "src/bin/streaming.rs"
 [[example]]
 name = "ssr_oracle"
 required-features = ["v8"]
-
-# The 152 alignment is unpublished, and cargo honours a patch only in the root manifest
-[patch.crates-io]
-openworkers-serde-v8 = { path = "../serde-v8" }
-openworkers-glue-v8 = { path = "../glue-v8" }

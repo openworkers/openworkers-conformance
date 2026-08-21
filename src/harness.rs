@@ -315,6 +315,7 @@ async fn evaluate(code: String) -> Result<String, String> {
         .body
         .collect()
         .await
+        .map_err(|e| format!("body stream failed: {e}"))?
         .ok_or_else(|| "worker sent an empty body".to_string())?;
 
     String::from_utf8(body.to_vec()).map_err(|e| format!("body is not utf-8: {e}"))
