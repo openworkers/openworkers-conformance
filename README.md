@@ -55,30 +55,29 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 
 ## Scoreboard
 
-Measured 2026-08-21, one commit per runtime, all against `openworkers-core`
-v0.15.0. The v8 column is from 2026-09-11, after `Headers` and `URL` moved
-to `openworkers-wintertc`; the other three are untouched since.
+Measured 2026-09-11, one commit per runtime, all against `openworkers-core`
+v0.15.0.
 
 | area                 | v8      | jsc     | quickjs | boa     |
 | -------------------- | ------- | ------- | ------- | ------- |
 | crypto (30)          | 30      | 23      | 21      | 10      |
 | encoding (55)        | 45      | 33      | 44      | 47      |
-| globals (109)        | 86      | 37      | 43      | 80      |
+| globals (109)        | 98      | 37      | 43      | 80      |
 | headers (28)         | 28      | 24      | 24      | 24      |
 | request (29)         | 22      | 19      | 16      | 20      |
 | response (38)        | 28      | 27      | 21      | 30      |
 | streams (25)         | 13      | 12      | 11      | 13      |
 | url (68)             | 68      | 66      | 66      | 66      |
-| wintercg (66)        | 38      | 27      | 24      | 29      |
-| **total (448)**      | **358** | **268** | **270** | **319** |
-|                      | 79%     | 59%     | 60%     | 71%     |
+| wintercg (66)        | 48      | 27      | 24      | 29      |
+| **total (448)**      | **380** | **268** | **270** | **319** |
+|                      | 84%     | 59%     | 60%     | 71%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `main`                         | `ef97d69` |
-| surface | `openworkers-wintertc` `main`  | `71db5be` |
+| v8      | `main`                         | `1485924` |
+| surface | `openworkers-wintertc` `main`  | `68c5e25` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | boa     | `feat/core-0.14`               | `9dec1ee` |
@@ -86,8 +85,10 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 
 ### What the numbers say
 
-73 of the 448 tests fail on all four backends, so most of the gap is the
-platform's, not any one engine's.
+51 of the 448 tests fail on all four backends, down from 77 in August. The 26
+that left the set left because v8 took them from `openworkers-wintertc`, not
+because the other three moved: their scores are identical to the August run.
+What remains is still mostly the platform's gap, not any one engine's.
 
 - **v8 is the only backend with a complete `URL` and a complete `crypto`**,
   68/68 and 30/30. Its `subtle` covers the six digests, AES-GCM round trips,
@@ -97,12 +98,13 @@ platform's, not any one engine's.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
-- **boa is 39 behind v8** (319 against 358) on the strength of `boa_wintertc`,
+- **boa is 61 behind v8** (319 against 380) on the strength of `boa_wintertc`,
   while being the weakest on crypto by far.
-- **No backend exposes `Event` or `EventTarget`**, so the DOM event core of the
-  Minimum Common API is missing everywhere, and with it `CustomEvent`,
-  `ErrorEvent`, `MessageEvent`, `PromiseRejectionEvent` and `AbortSignal.any`.
-  `AbortController` exists on v8 (8/8) and boa (6/8) only.
+- **The DOM event core exists on v8 alone**, from `openworkers-wintertc`:
+  `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
+  `PromiseRejectionEvent`, `MessagePort` and `MessageChannel`, with
+  `AbortSignal` built on `EventTarget`. v8 takes `js/globals/abort.js` whole,
+  24/24, against 11/24 for boa, 2/24 for quickjs and 0/24 for jsc.
 - **`Headers` is complete on v8 alone**, 28/28, since it took the interface
   from `openworkers-wintertc`. The other three sort no iteration, reject
   neither an invalid name nor a value with a newline, and trim no whitespace
