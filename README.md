@@ -56,8 +56,8 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 ## Scoreboard
 
 Measured 2026-08-21, one commit per runtime, all against `openworkers-core`
-v0.15.0. The v8 column is from 2026-09-11, after `Headers` moved to
-`openworkers-wintertc`; the other three are untouched since.
+v0.15.0. The v8 column is from 2026-09-11, after `Headers` and `URL` moved
+to `openworkers-wintertc`; the other three are untouched since.
 
 | area                 | v8      | jsc     | quickjs | boa     |
 | -------------------- | ------- | ------- | ------- | ------- |
@@ -77,8 +77,8 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `main`                         | `f053a44` |
-| surface | `openworkers-wintertc` `main`  | `db90832` |
+| v8      | `main`                         | `ef97d69` |
+| surface | `openworkers-wintertc` `main`  | `71db5be` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | boa     | `feat/core-0.14`               | `9dec1ee` |
