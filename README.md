@@ -62,22 +62,22 @@ v0.15.0.
 | -------------------- | ------- | ------- | ------- | ------- |
 | crypto (30)          | 30      | 23      | 21      | 10      |
 | encoding (55)        | 55      | 33      | 44      | 47      |
-| globals (109)        | 105     | 37      | 43      | 80      |
+| globals (109)        | 106     | 37      | 43      | 80      |
 | headers (28)         | 28      | 24      | 24      | 24      |
 | request (29)         | 29      | 19      | 16      | 20      |
 | response (38)        | 38      | 27      | 21      | 30      |
 | streams (25)         | 24      | 12      | 11      | 13      |
 | url (68)             | 68      | 66      | 66      | 66      |
-| wintercg (66)        | 57      | 27      | 24      | 29      |
-| **total (448)**      | **434** | **268** | **270** | **319** |
-|                      | 96%     | 59%     | 60%     | 71%     |
+| wintercg (66)        | 58      | 27      | 24      | 29      |
+| **total (448)**      | **436** | **268** | **270** | **319** |
+|                      | 97%     | 59%     | 60%     | 71%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `main`                         | `86dc1ba` |
-| surface | `openworkers-wintertc` `main`  | `28d4d86` |
+| v8      | `main`                         | `e7a502a` |
+| surface | `openworkers-wintertc` `main`  | `912612e` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | boa     | `feat/core-0.14`               | `9dec1ee` |
@@ -85,10 +85,13 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 
 ### What the numbers say
 
-12 of the 448 tests fail on all four backends, down from 77 in August. Every
-one of the 65 that left the set left because v8 took it from
+10 of the 448 tests fail on all four backends, down from 77 in August. Every
+one of the 67 that left the set left because v8 took it from
 `openworkers-wintertc`: jsc, quickjs and boa score exactly what they scored in
-August. v8 has 14 failures left, and only 2 of them are its own.
+August. v8 has 12 failures left, and only 2 of them are its own:
+`performance.timeOrigin`, which quickjs has, and `queueMicrotask` refusing a
+non-callable argument, which quickjs and boa refuse. Both live in the two
+pieces of surface that have not moved yet.
 
 - **v8 is the only backend with a complete `URL` and a complete `crypto`**,
   68/68 and 30/30. Its `subtle` covers the six digests, AES-GCM round trips,
@@ -98,7 +101,7 @@ August. v8 has 14 failures left, and only 2 of them are its own.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
-- **boa is 115 behind v8** (319 against 434) on the strength of `boa_wintertc`,
+- **boa is 117 behind v8** (319 against 436) on the strength of `boa_wintertc`,
   while being the weakest on crypto by far.
 - **The DOM event core exists on v8 alone**, from `openworkers-wintertc`:
   `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
