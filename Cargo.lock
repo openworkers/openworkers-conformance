@@ -2384,6 +2384,7 @@ dependencies = [
  "openworkers-runtime-v8-gc-derive",
  "openworkers-serde-v8",
  "openworkers-v8",
+ "openworkers-wintertc",
  "ring",
  "serde",
  "serde_json",
@@ -2408,7 +2409,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-wasm"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "bytes",
  "http-body-util",
@@ -2465,6 +2466,10 @@ dependencies = [
  "temporal_capi",
  "which",
 ]
+
+[[package]]
+name = "openworkers-wintertc"
+version = "0.1.0"
 
 [[package]]
 name = "par-core"
