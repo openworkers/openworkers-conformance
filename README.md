@@ -60,17 +60,17 @@ runtime, all against `openworkers-core` v0.15.0.
 
 | area                 | v8      | nova    | boa     | quickjs | jsc     |
 | -------------------- | ------- | ------- | ------- | ------- | ------- |
-| crypto (30)          | 30      | 9       | 10      | 21      | 23      |
-| encoding (55)        | 55      | 52      | 47      | 44      | 33      |
-| globals (109)        | 109     | 75      | 80      | 43      | 37      |
+| crypto (30)          | 30      | 23      | 10      | 21      | 23      |
+| encoding (55)        | 55      | 54      | 47      | 44      | 33      |
+| globals (109)        | 109     | 103     | 80      | 43      | 37      |
 | headers (28)         | 28      | **28**  | 24      | 24      | 24      |
 | request (29)         | 29      | **29**  | 20      | 16      | 19      |
 | response (38)        | 38      | **38**  | 30      | 21      | 27      |
 | streams (25)         | 25      | 24      | 13      | 11      | 12      |
 | url (68)             | 68      | **68**  | 66      | 66      | 66      |
-| wintercg (66)        | 66      | 45      | 29      | 24      | 27      |
-| **total (448)**      | **448** | **368** | **319** | **270** | **268** |
-|                      | 100%    | 82%     | 71%     | 60%     | 59%     |
+| wintercg (66)        | 66      | 55      | 29      | 24      | 27      |
+| **total (448)**      | **448** | **422** | **319** | **270** | **268** |
+|                      | 100%    | 94%     | 71%     | 60%     | 59%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
@@ -92,13 +92,18 @@ jsc, quickjs and boa score exactly what they scored in August. **v8 passes all
 448**, so the set that measures what the backends share is now the set that
 measures what they lack.
 
-**nova scores 368 on the surface**, against 242 on its own interfaces: 126
-tests, no op answered, 825 lines of its own `Request`, `Response`, `Headers`,
-`FormData` and base64 removed. Streams 0 to 24 of 25, `Request` 22 to 29,
-`Response` 30 to 38, globals 18 to 75 of 109. Thirteen of the nineteen modules
-ask nothing of their host, so a backend that answers no op takes all thirteen;
-the six that read one are what stands between nova and `URLPattern`,
-`performance` and the compression streams.
+**nova scores 422**, against 242 on its own interfaces in August. The surface
+took it to 368 with no op answered at all: thirteen of the nineteen modules ask
+nothing of their host. Five ops took it the rest of the way, along with timers,
+`encodeInto` and the four digests. Streams 0 to 24 of 25, `Request` 22 to 29,
+`Response` 30 to 38, globals 18 to 103 of 109, crypto 9 to 23 of 30. Of the 26
+it still fails, 7 ask for `WebAssembly`, which nova_vm does not have, and 8 for
+a `CryptoKey`.
+
+Two of the ops it cannot answer are held up by the same gap: `textEncode` and
+the compression codecs hand back bytes, and nova_vm gives an embedder no way to
+build a typed array. Everything else crosses as text, which is why `URL` is
+answered by a parser that replies in JSON and `subtle.digest` in hex.
 
 The same run found five deviations in the surface, caught by nova's own test
 suite rather than by this one: a `FormData` body reached the wire as
@@ -122,9 +127,8 @@ jsc, quickjs and boa write every one of these interfaces themselves.
 - **The DOM event core exists on v8 and nova**, from `openworkers-wintertc`:
   `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
   `PromiseRejectionEvent`, `MessagePort` and `MessageChannel`, with
-  `AbortSignal` built on `EventTarget`. v8 takes `js/globals/abort.js` whole,
-  24/24, nova 23/24 for want of the timer `AbortSignal.timeout` needs, against
-  11/24 for boa, 2/24 for quickjs and 0/24 for jsc.
+  `AbortSignal` built on `EventTarget`. v8 and nova take `js/globals/abort.js`
+  whole, 24/24, against 11/24 for boa, 2/24 for quickjs and 0/24 for jsc.
 - **`Headers` is complete on v8 and nova**, 28/28, on the interface both take
   from `openworkers-wintertc`. The other three sort no iteration, reject
   neither an invalid name nor a value with a newline, and trim no whitespace
@@ -148,11 +152,12 @@ jsc, quickjs and boa write every one of these interfaces themselves.
   whose `read` drops the view on the floor.
 - **`structuredClone`, `Blob` and `File` exist on v8, nova and boa**, and
   `multipart/form-data` parses on v8 and nova.
-- **`performance` exists on v8 and quickjs**, and v8 alone exposes the
-  `Performance` interface the standard names behind it; `self` exists on v8 and
-  boa. **The WebAssembly streaming entry points are on v8 alone**, and they
-  check the response's status and media type before compiling: nova takes the
-  module, but its engine has no `WebAssembly` for it to stand on.
+- **`performance` exists on v8, nova and quickjs**, and quickjs alone lacks the
+  `Performance` interface the standard names behind it; `self` exists on v8,
+  nova and boa. **Timers are on v8 and nova**, 16/16 both, and on no one else.
+- **The WebAssembly streaming entry points are on v8 alone**, and they check
+  the response's status and media type before compiling: nova takes the module,
+  but its engine has no `WebAssembly` for it to stand on.
 
 ## Streaming battery
 
