@@ -77,7 +77,7 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
 | v8      | `main`                         | `6a898ab` |
-| nova    | `main`                         | `3560e73` |
+| nova    | `main`                         | `2857ade` |
 | boa     | `main`                         | `be42bf1` |
 | surface | `openworkers-wintertc` `main`  | `e7825c2` |
 | jsc     | `feat/core-0.14`               | `2df2560` |

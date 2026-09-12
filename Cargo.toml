@@ -53,10 +53,3 @@ path = "src/bin/streaming.rs"
 [[example]]
 name = "ssr_oracle"
 required-features = ["v8"]
-
-# nova_vm 1.0.0 does not compile without `temporal`: its Intrinsics read heap
-# constants that only exist under the feature. ../nova-vm carries the missing
-# cfg attributes, as openworkers-runtime-nova does; drop both once upstream
-# ships them.
-[patch.crates-io]
-nova_vm = { path = "../nova-vm" }
