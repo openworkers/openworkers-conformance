@@ -12,6 +12,7 @@ v8 = ["dep:openworkers-runtime-v8", "dep:openworkers-transform", "_js"]
 jsc = ["dep:openworkers-runtime-jsc", "_js"]
 quickjs = ["dep:openworkers-runtime-quickjs", "_js"]
 boa = ["dep:openworkers-runtime-boa", "_js"]
+nova = ["dep:openworkers-runtime-nova", "_js"]
 # The guest is a wasm component, not a script, so the JS suite reports a skip
 wasm = ["dep:openworkers-runtime-wasm", "openworkers-core/wasm"]
 
@@ -27,10 +28,8 @@ openworkers-runtime-v8 = { path = "../openworkers-runtime-v8", optional = true, 
 openworkers-runtime-jsc = { path = "../openworkers-runtime-jsc", optional = true }
 openworkers-runtime-quickjs = { path = "../openworkers-runtime-quickjs", optional = true }
 openworkers-runtime-boa = { path = "../openworkers-runtime-boa", optional = true }
+openworkers-runtime-nova = { path = "../openworkers-runtime-nova", optional = true }
 openworkers-runtime-wasm = { path = "../openworkers-runtime-wasm", optional = true }
-# nova has no feature here: nova_vm 1.0 pulls temporal_rs 0.1.2, written against
-# icu_calendar 2.1, while v8 152 pulls temporal_capi 0.2.3+, which wants 2.2, and
-# one lockfile cannot hold both.
 
 # ESM -> classic script lowering, only the SSR oracle needs it.
 openworkers-transform = { git = "https://github.com/openworkers/openworkers-transform", tag = "v0.1.0", optional = true }
@@ -54,3 +53,10 @@ path = "src/bin/streaming.rs"
 [[example]]
 name = "ssr_oracle"
 required-features = ["v8"]
+
+# nova_vm 1.0.0 does not compile without `temporal`: its Intrinsics read heap
+# constants that only exist under the feature. ../nova-vm carries the missing
+# cfg attributes, as openworkers-runtime-nova does; drop both once upstream
+# ships them.
+[patch.crates-io]
+nova_vm = { path = "../nova-vm" }

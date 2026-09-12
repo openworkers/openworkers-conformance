@@ -55,41 +55,49 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 
 ## Scoreboard
 
-v8 measured 2026-09-12, the other three on 2026-09-11, one commit per runtime,
-all against `openworkers-core` v0.15.0.
+All five measured 2026-09-12, one commit per runtime, all against
+`openworkers-core` v0.15.0.
 
-| area                 | v8      | jsc     | quickjs | boa     |
-| -------------------- | ------- | ------- | ------- | ------- |
-| crypto (30)          | 30      | 23      | 21      | 10      |
-| encoding (55)        | 55      | 33      | 44      | 47      |
-| globals (109)        | 109     | 37      | 43      | 80      |
-| headers (28)         | 28      | 24      | 24      | 24      |
-| request (29)         | 29      | 19      | 16      | 20      |
-| response (38)        | 38      | 27      | 21      | 30      |
-| streams (25)         | 25      | 12      | 11      | 13      |
-| url (68)             | 68      | 66      | 66      | 66      |
-| wintercg (66)        | 66      | 27      | 24      | 29      |
-| **total (448)**      | **448** | **268** | **270** | **319** |
-|                      | 100%    | 59%     | 60%     | 71%     |
+| area                 | v8      | boa     | quickjs | jsc     | nova    |
+| -------------------- | ------- | ------- | ------- | ------- | ------- |
+| crypto (30)          | 30      | 10      | 21      | 23      | 9       |
+| encoding (55)        | 55      | 47      | 44      | 33      | 52      |
+| globals (109)        | 109     | 80      | 43      | 37      | 18      |
+| headers (28)         | 28      | 24      | 24      | 24      | **28**  |
+| request (29)         | 29      | 20      | 16      | 19      | 22      |
+| response (38)        | 38      | 30      | 21      | 27      | 30      |
+| streams (25)         | 25      | 13      | 11      | 12      | 0       |
+| url (68)             | 68      | 66      | 66      | 66      | **68**  |
+| wintercg (66)        | 66      | 29      | 24      | 27      | 15      |
+| **total (448)**      | **448** | **319** | **270** | **268** | **242** |
+|                      | 100%    | 71%     | 60%     | 59%     | 54%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
 | v8      | `main`                         | `6a898ab` |
+| nova    | `main`                         | `4660179` |
+| boa     | `main`                         | `be42bf1` |
 | surface | `openworkers-wintertc` `main`  | `87ff948` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
-| boa     | `feat/core-0.14`               | `9dec1ee` |
 | wasm    | `feat/core-0.14-wasmtime-bump` | `c97afa3` |
 
 ### What the numbers say
 
-No test fails on all four backends any more, down from 77 in August. Every one
-of the 77 that left the set left because v8 took it from
-`openworkers-wintertc`: jsc, quickjs and boa score exactly what they scored in
-August. **v8 passes all 448**, so the set that measures what the backends share
-is now the set that measures what they lack.
+No test fails on every backend any more, down from 77 in August. Every one of
+the 77 that left the set left because v8 took it from `openworkers-wintertc`:
+jsc, quickjs and boa score exactly what they scored in August. **v8 passes all
+448**, so the set that measures what the backends share is now the set that
+measures what they lack.
+
+**nova is measured here for the first time**, at 242, and its shape is the
+argument for the surface in miniature. It is the only backend besides v8 with a
+complete `URL` (68/68) and the only one at all with a complete `Headers`
+(28/28), both from JavaScript it carries itself. It scores 0 on streams and 18
+of 109 on globals, because `ReadableStream`, `Event` and `AbortController` are
+not there to be scored. It lost points nowhere; it never had the interfaces.
 
 The base `ReadableStream` moved into the surface too, which is what the other
 three need before any of this reaches them: they patched nothing, because until

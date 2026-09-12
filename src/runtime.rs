@@ -7,9 +7,10 @@ use tokio::task::LocalSet;
     feature = "jsc",
     feature = "quickjs",
     feature = "boa",
+    feature = "nova",
     feature = "wasm"
 )))]
-compile_error!("no runtime backend selected: build with --features v8|jsc|quickjs|boa|wasm");
+compile_error!("no runtime backend selected: build with --features v8|jsc|quickjs|boa|nova|wasm");
 
 #[cfg(any(
     all(
@@ -18,15 +19,25 @@ compile_error!("no runtime backend selected: build with --features v8|jsc|quickj
             feature = "jsc",
             feature = "quickjs",
             feature = "boa",
+            feature = "nova",
             feature = "wasm"
         )
     ),
     all(
         feature = "jsc",
-        any(feature = "quickjs", feature = "boa", feature = "wasm")
+        any(
+            feature = "quickjs",
+            feature = "boa",
+            feature = "nova",
+            feature = "wasm"
+        )
     ),
-    all(feature = "quickjs", any(feature = "boa", feature = "wasm")),
-    all(feature = "boa", feature = "wasm"),
+    all(
+        feature = "quickjs",
+        any(feature = "boa", feature = "nova", feature = "wasm")
+    ),
+    all(feature = "boa", any(feature = "nova", feature = "wasm")),
+    all(feature = "nova", feature = "wasm"),
 ))]
 compile_error!("runtime backends are mutually exclusive: select exactly one");
 
@@ -39,6 +50,8 @@ pub const NAME: &str = "jsc";
 pub const NAME: &str = "quickjs";
 #[cfg(feature = "boa")]
 pub const NAME: &str = "boa";
+#[cfg(feature = "nova")]
+pub const NAME: &str = "nova";
 #[cfg(feature = "wasm")]
 pub const NAME: &str = "wasm";
 
@@ -46,6 +59,8 @@ pub const NAME: &str = "wasm";
 pub use openworkers_runtime_boa::Worker;
 #[cfg(feature = "jsc")]
 pub use openworkers_runtime_jsc::Worker;
+#[cfg(feature = "nova")]
+pub use openworkers_runtime_nova::Worker;
 #[cfg(feature = "quickjs")]
 pub use openworkers_runtime_quickjs::Worker;
 #[cfg(feature = "v8")]
