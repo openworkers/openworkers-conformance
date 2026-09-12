@@ -68,16 +68,16 @@ all against `openworkers-core` v0.15.0.
 | response (38)        | 38      | 27      | 21      | 30      |
 | streams (25)         | 25      | 12      | 11      | 13      |
 | url (68)             | 68      | 66      | 66      | 66      |
-| wintercg (66)        | 63      | 27      | 24      | 29      |
-| **total (448)**      | **445** | **268** | **270** | **319** |
-|                      | 99%     | 59%     | 60%     | 71%     |
+| wintercg (66)        | 66      | 27      | 24      | 29      |
+| **total (448)**      | **448** | **268** | **270** | **319** |
+|                      | 100%    | 59%     | 60%     | 71%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `main`                         | `dfb5a08` |
-| surface | `openworkers-wintertc` `main`  | `51a4a86` |
+| v8      | `main`                         | `6a898ab` |
+| surface | `openworkers-wintertc` `main`  | `87ff948` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | boa     | `feat/core-0.14`               | `9dec1ee` |
@@ -85,11 +85,15 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 
 ### What the numbers say
 
-3 of the 448 tests fail on all four backends, down from 77 in August. Every
-one of the 74 that left the set left because v8 took it from
+No test fails on all four backends any more, down from 77 in August. Every one
+of the 77 that left the set left because v8 took it from
 `openworkers-wintertc`: jsc, quickjs and boa score exactly what they scored in
-August. v8 has 3 failures left and **not one of them is its own**: what it
-still fails, every backend fails.
+August. **v8 passes all 448**, so the set that measures what the backends share
+is now the set that measures what they lack.
+
+The base `ReadableStream` moved into the surface too, which is what the other
+three need before any of this reaches them: they patched nothing, because until
+now the stream every tier stands on lived inside the v8 runtime.
 
 - **v8 is the only backend with a complete `URL` and a complete `crypto`**,
   68/68 and 30/30. Its `subtle` covers the six digests, AES-GCM round trips,
@@ -99,7 +103,7 @@ still fails, every backend fails.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
-- **boa is 126 behind v8** (319 against 445) on the strength of `boa_wintertc`,
+- **boa is 129 behind v8** (319 against 448) on the strength of `boa_wintertc`,
   while being the weakest on crypto by far.
 - **The DOM event core exists on v8 alone**, from `openworkers-wintertc`:
   `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
@@ -121,10 +125,11 @@ still fails, every backend fails.
   quickjs and boa, and only v8 makes a stream async-iterable. **v8 is the only
   backend with `CompressionStream` and `DecompressionStream`**, which compress
   chunk by chunk over a host codec instead of buffering the body.
-  `ReadableByteStreamController`, `ReadableStreamBYOBReader` and
-  `ReadableStreamBYOBRequest` are exposed nowhere: no backend implements a byte
-  stream, and a class exposed without one behind it would be a score, not a
-  measurement.
+  **The byte tier is on v8 alone**: `ReadableByteStreamController`,
+  `ReadableStreamBYOBReader` and `ReadableStreamBYOBRequest`, with the buffer
+  transfer the standard asks of `read(view)`. The three other backends expose
+  none of them, and asking one for a byob reader still returns a default reader
+  whose `read` drops the view on the floor.
 - **`structuredClone`, `Blob` and `File` exist on v8 and boa only**, and
   `multipart/form-data` parses on v8 alone.
 - **`performance` exists on v8 and quickjs**, and v8 alone exposes the
