@@ -55,8 +55,8 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 
 ## Scoreboard
 
-Measured 2026-09-11, one commit per runtime, all against `openworkers-core`
-v0.15.0.
+v8 measured 2026-09-12, the other three on 2026-09-11, one commit per runtime,
+all against `openworkers-core` v0.15.0.
 
 | area                 | v8      | jsc     | quickjs | boa     |
 | -------------------- | ------- | ------- | ------- | ------- |
@@ -66,18 +66,18 @@ v0.15.0.
 | headers (28)         | 28      | 24      | 24      | 24      |
 | request (29)         | 29      | 19      | 16      | 20      |
 | response (38)        | 38      | 27      | 21      | 30      |
-| streams (25)         | 24      | 12      | 11      | 13      |
+| streams (25)         | 25      | 12      | 11      | 13      |
 | url (68)             | 68      | 66      | 66      | 66      |
-| wintercg (66)        | 59      | 27      | 24      | 29      |
-| **total (448)**      | **440** | **268** | **270** | **319** |
-|                      | 98%     | 59%     | 60%     | 71%     |
+| wintercg (66)        | 63      | 27      | 24      | 29      |
+| **total (448)**      | **445** | **268** | **270** | **319** |
+|                      | 99%     | 59%     | 60%     | 71%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
-| v8      | `main`                         | `d4e18d5` |
-| surface | `openworkers-wintertc` `main`  | `a3803d5` |
+| v8      | `main`                         | `dfb5a08` |
+| surface | `openworkers-wintertc` `main`  | `51a4a86` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | boa     | `feat/core-0.14`               | `9dec1ee` |
@@ -85,10 +85,10 @@ Branch names lag the code: every one of these builds against core v0.15.0.
 
 ### What the numbers say
 
-8 of the 448 tests fail on all four backends, down from 77 in August. Every
-one of the 69 that left the set left because v8 took it from
+3 of the 448 tests fail on all four backends, down from 77 in August. Every
+one of the 74 that left the set left because v8 took it from
 `openworkers-wintertc`: jsc, quickjs and boa score exactly what they scored in
-August. v8 has 8 failures left and **not one of them is its own**: what it
+August. v8 has 3 failures left and **not one of them is its own**: what it
 still fails, every backend fails.
 
 - **v8 is the only backend with a complete `URL` and a complete `crypto`**,
@@ -99,7 +99,7 @@ still fails, every backend fails.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
-- **boa is 121 behind v8** (319 against 440) on the strength of `boa_wintertc`,
+- **boa is 126 behind v8** (319 against 445) on the strength of `boa_wintertc`,
   while being the weakest on crypto by far.
 - **The DOM event core exists on v8 alone**, from `openworkers-wintertc`:
   `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
@@ -118,16 +118,19 @@ still fails, every backend fails.
 - **Streams stop at `ReadableStream` on three of the four**: `WritableStream`,
   `TransformStream`, the queuing strategies, `TextEncoderStream`/
   `TextDecoderStream`, `pipeTo` and `ReadableStream.from` are missing on jsc,
-  quickjs and boa, and only v8 makes a stream async-iterable. v8 loses its one
-  remaining streams point on `CompressionStream`, which no backend has.
+  quickjs and boa, and only v8 makes a stream async-iterable. **v8 is the only
+  backend with `CompressionStream` and `DecompressionStream`**, which compress
+  chunk by chunk over a host codec instead of buffering the body.
   `ReadableByteStreamController`, `ReadableStreamBYOBReader` and
   `ReadableStreamBYOBRequest` are exposed nowhere: no backend implements a byte
   stream, and a class exposed without one behind it would be a score, not a
   measurement.
 - **`structuredClone`, `Blob` and `File` exist on v8 and boa only**, and
   `multipart/form-data` parses on v8 alone.
-- **`performance` exists on v8 and quickjs**, and only quickjs carries
-  `timeOrigin`; `self` exists on v8 and boa.
+- **`performance` exists on v8 and quickjs**, and v8 alone exposes the
+  `Performance` interface the standard names behind it; `self` exists on v8 and
+  boa. **The WebAssembly streaming entry points are on v8 alone**, and they
+  check the response's status and media type before compiling.
 
 ## Streaming battery
 
