@@ -2622,6 +2622,7 @@ dependencies = [
  "getrandom 0.3.4",
  "nova_vm",
  "openworkers-core",
+ "openworkers-wintertc 0.1.6",
  "serde",
  "serde_json",
  "url",
@@ -2657,7 +2658,7 @@ dependencies = [
  "openworkers-runtime-v8-gc-derive",
  "openworkers-serde-v8",
  "openworkers-v8",
- "openworkers-wintertc",
+ "openworkers-wintertc 0.1.4",
  "ring",
  "serde",
  "serde_json",
@@ -2745,6 +2746,10 @@ dependencies = [
 name = "openworkers-wintertc"
 version = "0.1.4"
 source = "git+https://github.com/openworkers/openworkers-wintertc?tag=v0.1.4#b8bcceb3e61f5c86c23aa1a69cb9ea2a7810d52f"
+
+[[package]]
+name = "openworkers-wintertc"
+version = "0.1.6"
 
 [[package]]
 name = "owo-colors"

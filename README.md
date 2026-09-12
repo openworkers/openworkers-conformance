@@ -55,31 +55,31 @@ failing test, `--json` emits the whole run, `--filter` selects by path.
 
 ## Scoreboard
 
-All five measured 2026-09-12, one commit per runtime, all against
-`openworkers-core` v0.15.0.
+v8 and nova measured 2026-09-13, the other three 2026-09-12, one commit per
+runtime, all against `openworkers-core` v0.15.0.
 
-| area                 | v8      | boa     | quickjs | jsc     | nova    |
+| area                 | v8      | nova    | boa     | quickjs | jsc     |
 | -------------------- | ------- | ------- | ------- | ------- | ------- |
-| crypto (30)          | 30      | 10      | 21      | 23      | 9       |
-| encoding (55)        | 55      | 47      | 44      | 33      | 52      |
-| globals (109)        | 109     | 80      | 43      | 37      | 18      |
-| headers (28)         | 28      | 24      | 24      | 24      | **28**  |
-| request (29)         | 29      | 20      | 16      | 19      | 22      |
-| response (38)        | 38      | 30      | 21      | 27      | 30      |
-| streams (25)         | 25      | 13      | 11      | 12      | 0       |
-| url (68)             | 68      | 66      | 66      | 66      | **68**  |
-| wintercg (66)        | 66      | 29      | 24      | 27      | 15      |
-| **total (448)**      | **448** | **319** | **270** | **268** | **242** |
-|                      | 100%    | 71%     | 60%     | 59%     | 54%     |
+| crypto (30)          | 30      | 9       | 10      | 21      | 23      |
+| encoding (55)        | 55      | 52      | 47      | 44      | 33      |
+| globals (109)        | 109     | 75      | 80      | 43      | 37      |
+| headers (28)         | 28      | **28**  | 24      | 24      | 24      |
+| request (29)         | 29      | **29**  | 20      | 16      | 19      |
+| response (38)        | 38      | **38**  | 30      | 21      | 27      |
+| streams (25)         | 25      | 24      | 13      | 11      | 12      |
+| url (68)             | 68      | **68**  | 66      | 66      | 66      |
+| wintercg (66)        | 66      | 45      | 29      | 24      | 27      |
+| **total (448)**      | **448** | **368** | **319** | **270** | **268** |
+|                      | 100%    | 82%     | 71%     | 60%     | 59%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
 | backend | branch                         | commit    |
 | ------- | ------------------------------ | --------- |
 | v8      | `main`                         | `6a898ab` |
-| nova    | `main`                         | `d2d9476` |
+| nova    | `main`                         | `3560e73` |
 | boa     | `main`                         | `be42bf1` |
-| surface | `openworkers-wintertc` `main`  | `87ff948` |
+| surface | `openworkers-wintertc` `main`  | `e7825c2` |
 | jsc     | `feat/core-0.14`               | `2df2560` |
 | quickjs | `feat/core-0.14`               | `ed14afe` |
 | wasm    | `feat/core-0.14-wasmtime-bump` | `c97afa3` |
@@ -92,58 +92,67 @@ jsc, quickjs and boa score exactly what they scored in August. **v8 passes all
 448**, so the set that measures what the backends share is now the set that
 measures what they lack.
 
-**nova is measured here for the first time**, at 242, and its shape is the
-argument for the surface in miniature. It is the only backend besides v8 with a
-complete `URL` (68/68) and the only one at all with a complete `Headers`
-(28/28), both from JavaScript it carries itself. It scores 0 on streams and 18
-of 109 on globals, because `ReadableStream`, `Event` and `AbortController` are
-not there to be scored. It lost points nowhere; it never had the interfaces.
+**nova scores 368 on the surface**, against 242 on its own interfaces: 126
+tests, no op answered, 825 lines of its own `Request`, `Response`, `Headers`,
+`FormData` and base64 removed. Streams 0 to 24 of 25, `Request` 22 to 29,
+`Response` 30 to 38, globals 18 to 75 of 109. Thirteen of the nineteen modules
+ask nothing of their host, so a backend that answers no op takes all thirteen;
+the six that read one are what stands between nova and `URLPattern`,
+`performance` and the compression streams.
 
-The base `ReadableStream` moved into the surface too, which is what the other
-three need before any of this reaches them: they patched nothing, because until
-now the stream every tier stands on lived inside the v8 runtime.
+The same run found five deviations in the surface, caught by nova's own test
+suite rather than by this one: a `FormData` body reached the wire as
+`[object FormData]`, every method was uppercased where the standard normalizes
+six, a body-less read marked the body used, a `Request` built from another took
+its stream instead of a tee, and a `Headers` init accepted only an array.
 
-- **v8 is the only backend with a complete `URL` and a complete `crypto`**,
-  68/68 and 30/30. Its `subtle` covers the six digests, AES-GCM round trips,
-  raw HMAC and AES key import and export, and ECDSA key generation. jsc and
-  quickjs stop after digest and HMAC; boa has no `subtle.digest` at all, which
-  is most of the distance between its 10/30 and everyone else.
+jsc, quickjs and boa write every one of these interfaces themselves.
+
+- **v8 is the only backend with a complete `crypto`**, 30/30, and shares a
+  complete `URL` with nova, 68/68. Its `subtle` covers the six digests,
+  AES-GCM round trips, raw HMAC and AES key import and export, and ECDSA key
+  generation. jsc and quickjs stop after digest and HMAC; boa has no
+  `subtle.digest` at all, which is most of the distance between its 10/30 and
+  everyone else.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
 - **boa is 129 behind v8** (319 against 448) on the strength of `boa_wintertc`,
   while being the weakest on crypto by far.
-- **The DOM event core exists on v8 alone**, from `openworkers-wintertc`:
+- **The DOM event core exists on v8 and nova**, from `openworkers-wintertc`:
   `Event`, `EventTarget`, `CustomEvent`, `ErrorEvent`, `MessageEvent`,
   `PromiseRejectionEvent`, `MessagePort` and `MessageChannel`, with
   `AbortSignal` built on `EventTarget`. v8 takes `js/globals/abort.js` whole,
-  24/24, against 11/24 for boa, 2/24 for quickjs and 0/24 for jsc.
-- **`Headers` is complete on v8 alone**, 28/28, since it took the interface
+  24/24, nova 23/24 for want of the timer `AbortSignal.timeout` needs, against
+  11/24 for boa, 2/24 for quickjs and 0/24 for jsc.
+- **`Headers` is complete on v8 and nova**, 28/28, on the interface both take
   from `openworkers-wintertc`. The other three sort no iteration, reject
   neither an invalid name nor a value with a newline, and trim no whitespace
   around a value.
-- **`Request` and `Response` are complete on v8**, 29/29 and 38/38, from
-  `openworkers-wintertc`. The other three set no `Content-Type` from the body,
-  so neither a string nor a `URLSearchParams` arrives with its type, and none
-  enforces the status rules (a body with 204 or 304, a status below 200 or
-  above 599).
-- **Streams stop at `ReadableStream` on three of the four**: `WritableStream`,
+- **`Request` and `Response` are complete on v8 and nova**, 29/29 and 38/38,
+  from `openworkers-wintertc`. The other three set no `Content-Type` from the
+  body, so neither a string nor a `URLSearchParams` arrives with its type, and
+  none enforces the status rules (a body with 204 or 304, a status below 200
+  or above 599).
+- **Streams stop at `ReadableStream` on three of the five**: `WritableStream`,
   `TransformStream`, the queuing strategies, `TextEncoderStream`/
   `TextDecoderStream`, `pipeTo` and `ReadableStream.from` are missing on jsc,
-  quickjs and boa, and only v8 makes a stream async-iterable. **v8 is the only
-  backend with `CompressionStream` and `DecompressionStream`**, which compress
-  chunk by chunk over a host codec instead of buffering the body.
-  **The byte tier is on v8 alone**: `ReadableByteStreamController`,
+  quickjs and boa, and only v8 and nova make a stream async-iterable. **v8 is
+  the only backend with `CompressionStream` and `DecompressionStream`**, which
+  compress chunk by chunk over a host codec instead of buffering the body, and
+  the codec is an op nova does not answer.
+  **The byte tier is on v8 and nova**: `ReadableByteStreamController`,
   `ReadableStreamBYOBReader` and `ReadableStreamBYOBRequest`, with the buffer
   transfer the standard asks of `read(view)`. The three other backends expose
   none of them, and asking one for a byob reader still returns a default reader
   whose `read` drops the view on the floor.
-- **`structuredClone`, `Blob` and `File` exist on v8 and boa only**, and
-  `multipart/form-data` parses on v8 alone.
+- **`structuredClone`, `Blob` and `File` exist on v8, nova and boa**, and
+  `multipart/form-data` parses on v8 and nova.
 - **`performance` exists on v8 and quickjs**, and v8 alone exposes the
   `Performance` interface the standard names behind it; `self` exists on v8 and
   boa. **The WebAssembly streaming entry points are on v8 alone**, and they
-  check the response's status and media type before compiling.
+  check the response's status and media type before compiling: nova takes the
+  module, but its engine has no `WebAssembly` for it to stand on.
 
 ## Streaming battery
 
@@ -171,9 +180,10 @@ One cargo feature per backend, mutually exclusive, the same pattern as
 JavaScript, so this suite has nothing to say about it. Reporting 0/448 there
 would be a lie, not a measurement.
 
-`nova` has no feature at all. `nova_vm` 1.0 pulls `temporal_rs` 0.1.2, written
-against `icu_calendar` 2.1, while v8 152 pulls `temporal_capi` 0.2.3+, which
-wants 2.2. One lockfile cannot hold both, and this crate needs v8.
+`nova` builds with `temporal` off. `nova_vm` 1.0 with the feature pulls
+`temporal_rs` 0.1.2, written against `icu_calendar` 2.1, while v8 152 pulls
+`temporal_capi` 0.2.3+, which wants 2.2. One lockfile cannot hold both, and
+this crate needs v8.
 
 ## SSR oracle
 
