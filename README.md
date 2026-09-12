@@ -60,7 +60,7 @@ runtime, all against `openworkers-core` v0.15.0.
 
 | area                 | v8      | nova    | boa     | quickjs | jsc     |
 | -------------------- | ------- | ------- | ------- | ------- | ------- |
-| crypto (30)          | 30      | 23      | 10      | 21      | 23      |
+| crypto (30)          | 30      | 29      | 10      | 21      | 23      |
 | encoding (55)        | 55      | 54      | 47      | 44      | 33      |
 | globals (109)        | 109     | 103     | 80      | 43      | 37      |
 | headers (28)         | 28      | **28**  | 24      | 24      | 24      |
@@ -68,9 +68,9 @@ runtime, all against `openworkers-core` v0.15.0.
 | response (38)        | 38      | **38**  | 30      | 21      | 27      |
 | streams (25)         | 25      | 24      | 13      | 11      | 12      |
 | url (68)             | 68      | **68**  | 66      | 66      | 66      |
-| wintercg (66)        | 66      | 55      | 29      | 24      | 27      |
-| **total (448)**      | **448** | **422** | **319** | **270** | **268** |
-|                      | 100%    | 94%     | 71%     | 60%     | 59%     |
+| wintercg (66)        | 66      | 56      | 29      | 24      | 27      |
+| **total (448)**      | **448** | **429** | **319** | **270** | **268** |
+|                      | 100%    | 95%     | 71%     | 60%     | 59%     |
 
 Branch names lag the code: every one of these builds against core v0.15.0.
 
@@ -92,13 +92,12 @@ jsc, quickjs and boa score exactly what they scored in August. **v8 passes all
 448**, so the set that measures what the backends share is now the set that
 measures what they lack.
 
-**nova scores 422**, against 242 on its own interfaces in August. The surface
+**nova scores 429**, against 242 on its own interfaces in August. The surface
 took it to 368 with no op answered at all: thirteen of the nineteen modules ask
 nothing of their host. Five ops took it the rest of the way, along with timers,
-`encodeInto` and the four digests. Streams 0 to 24 of 25, `Request` 22 to 29,
-`Response` 30 to 38, globals 18 to 103 of 109, crypto 9 to 23 of 30. Of the 26
-it still fails, 7 ask for `WebAssembly`, which nova_vm does not have, and 8 for
-a `CryptoKey`.
+`encodeInto` and a `subtle` that computes. Streams 0 to 24 of 25, `Request` 22
+to 29, `Response` 30 to 38, globals 18 to 103 of 109, crypto 9 to 29 of 30. Of
+the 19 it still fails, 7 ask for `WebAssembly`, which nova_vm does not have.
 
 Two of the ops it cannot answer are held up by the same gap: `textEncode` and
 the compression codecs hand back bytes, and nova_vm gives an embedder no way to
@@ -116,9 +115,9 @@ jsc, quickjs and boa write every one of these interfaces themselves.
 - **v8 is the only backend with a complete `crypto`**, 30/30, and shares a
   complete `URL` with nova, 68/68. Its `subtle` covers the six digests,
   AES-GCM round trips, raw HMAC and AES key import and export, and ECDSA key
-  generation. jsc and quickjs stop after digest and HMAC; boa has no
-  `subtle.digest` at all, which is most of the distance between its 10/30 and
-  everyone else.
+  generation; nova has all of that but the ECDSA pair, at 29/30. jsc and
+  quickjs stop after digest and HMAC; boa has no `subtle.digest` at all, which
+  is most of the distance between its 10/30 and everyone else.
 - **jsc and quickjs miss `URL.canParse` and `URL.parse`** and nothing else in
   `url.js`; boa takes `url.js` whole and loses its two points on
   `URLSearchParams`. All three back `URL` with the `url` crate.
