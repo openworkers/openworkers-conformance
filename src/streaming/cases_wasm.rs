@@ -86,7 +86,11 @@ fn digest(bytes: &[u8]) -> String {
 
     hasher.update(bytes);
 
-    format!("{:x}", hasher.finalize())
+    hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 struct Exchange {

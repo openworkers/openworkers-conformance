@@ -192,7 +192,11 @@ fn digest(bytes: &[u8]) -> String {
 
     hasher.update(bytes);
 
-    format!("{:x}", hasher.finalize())
+    hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 /// What one request/response exchange produced, once the body has been read.
