@@ -2649,7 +2649,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "openworkers-conformance"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "openworkers-core",
@@ -2694,7 +2694,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-boa"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -2713,7 +2713,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-jsc"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "bytes",
  "env_logger",
@@ -2731,7 +2731,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-nova"
-version = "0.15.4"
+version = "0.15.5"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
@@ -2751,7 +2751,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-quickjs"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -2767,7 +2767,7 @@ dependencies = [
 
 [[package]]
 name = "openworkers-runtime-v8"
-version = "0.15.6"
+version = "0.15.7"
 dependencies = [
  "bytes",
  "encoding_rs",
