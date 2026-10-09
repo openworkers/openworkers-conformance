@@ -3,6 +3,9 @@ pub mod runtime;
 pub mod streaming;
 
 #[cfg(feature = "_js")]
+pub mod events;
+
+#[cfg(feature = "_js")]
 pub mod harness;
 
 #[cfg(feature = "_js")]

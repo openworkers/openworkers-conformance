@@ -50,6 +50,10 @@ path = "src/main.rs"
 name = "streaming"
 path = "src/bin/streaming.rs"
 
+[[bin]]
+name = "events"
+path = "src/bin/events.rs"
+
 [[example]]
 name = "ssr_oracle"
 required-features = ["v8"]
