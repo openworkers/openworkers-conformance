@@ -22,8 +22,8 @@ fn main() -> ExitCode {
             "--json" => json = true,
             "--filter" => filter = args.next(),
             "--strict" => {
-                if !events::strict_respond_with() {
-                    eprintln!("--strict: this backend has no strict respondWith switch");
+                if !events::strict() {
+                    eprintln!("--strict: this backend has no strict switch");
 
                     return ExitCode::FAILURE;
                 }

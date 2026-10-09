@@ -180,9 +180,11 @@ gets reported as `hangs` rather than taking the run with it.
 The guest suite runs inside one fetch event, so it cannot see how a runtime
 hands events to the worker. `src/events.rs` sends them from the host: a fetch
 listener and its FetchEvent against the
-[Service Worker spec](https://w3c.github.io/ServiceWorker/#fetchevent-interface)
-(`respondWith`, `waitUntil`), and `export default` and the scheduled event
-against the Workers module syntax.
+[Service Worker spec](https://w3c.github.io/ServiceWorker/#fetchevent-interface),
+and `export default` and the scheduled event against the Workers module
+syntax. The FetchEvent cases port the server side of web-platform-tests
+`service-workers/service-worker`; each names the WPT file it comes from. The
+cases that need a page, navigation, clients or the network are left out.
 
 ```bash
 cargo run --release --features v8 --bin events
@@ -190,10 +192,10 @@ cargo run --release --features v8 --bin events -- --strict
 ```
 
 A case ends `ok`, `FAIL` or `lax`. `lax` is a runtime that accepts what the
-spec refuses, on purpose: OpenWorkers accepts a `respondWith` after the
-listener returned, which its docs taught, and each run prints a notice for
-it. `--strict` turns on the backend's strict `respondWith` (v8:
-`set_strict_respond_with`), where the same case must pass.
+spec refuses, on purpose, and each run prints a notice for it. OpenWorkers
+accepts a `respondWith` from a task after the dispatch, and a string as a
+response body chunk; its docs taught both. `--strict` turns on the backend's
+strict mode (v8: `set_strict`), where the same cases must pass.
 
 ## Backends
 

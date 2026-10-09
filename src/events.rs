@@ -362,7 +362,7 @@ const CASES: &[Case] = &[
     },
     Case {
         group: "respondWith timing",
-        name: "in a task after the listener returned, it throws InvalidStateError",
+        name: "in a task after the dispatch, it throws InvalidStateError",
         source: wpt!("fetch-event-async-respond-with.https.html"),
         script: "addEventListener('fetch', e => { setTimeout(() => e.respondWith(new Response('task')), 0); });",
         events: &[Send::Get("/respondWith-in-task")],
@@ -559,13 +559,19 @@ const CASES: &[Case] = &[
         group: "response body",
         name: "a chunk that is not a Uint8Array errors the body",
         source: wpt!("fetch-event-respond-with-response-body-with-invalid-chunk.https.html"),
-        script: "addEventListener('fetch', e => e.respondWith(new Response(new ReadableStream({ start: c => c.enqueue('hello') }), { headers: { 'x-content-type-options': 'nosniff' } })));",
+        script: "addEventListener('fetch', e => e.respondWith(new Response(new ReadableStream({ start(c) { c.enqueue('hello'); c.close(); } }))));",
         events: &[Send::Get("/body-stream-with-invalid-chunk")],
         judge: |a| match a.first() {
             Some(Answer::Http {
                 body_error: Some(_),
                 ..
             }) => (Status::Pass, String::new()),
+            Some(Answer::Http {
+                status: 200, body, ..
+            }) if body == "hello" => (
+                Status::Lax,
+                "a string chunk is sent as text; the Fetch spec errors the body".to_string(),
+            ),
             _ => (
                 Status::Fail,
                 format!("expected the body to fail, got {}", describe(a, 0)),
@@ -751,12 +757,12 @@ const CASES: &[Case] = &[
     },
 ];
 
-/// Turns on the backend's strict respondWith, for the workers created after.
+/// Turns on the backend's strict mode, for the workers created after.
 /// Answers false where the backend has no such switch.
-pub fn strict_respond_with() -> bool {
+pub fn strict() -> bool {
     #[cfg(feature = "v8")]
     {
-        openworkers_runtime_v8::set_strict_respond_with(true);
+        openworkers_runtime_v8::set_strict(true);
         true
     }
 
